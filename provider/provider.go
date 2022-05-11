@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/vatsimnerd/geoidx"
 	"github.com/vatsimnerd/simwatch-providers/merged"
+	"github.com/vatsimnerd/simwatch/config"
 	"github.com/vatsimnerd/util/pubsub"
 )
 
@@ -26,9 +27,9 @@ type Provider struct {
 	dataLock sync.RWMutex
 }
 
-func New() *Provider {
+func New(cfg *config.Config) *Provider {
 	return &Provider{
-		vatsim: merged.New(),
+		vatsim: merged.New(&cfg.API, &cfg.Data),
 		stop:   make(chan bool),
 		idx:    geoidx.NewIndex(),
 
@@ -278,9 +279,9 @@ func (p *Provider) deleteRadar(obj interface{}) error {
 }
 
 func (p *Provider) Subscribe(chSize int) *Subscription {
-	geosub := p.idx.Subscribe(chSize)
 	return &Subscription{
-		id:     geosub.ID(),
-		geosub: geosub,
+		Subscription:  p.idx.Subscribe(chSize),
+		airportFilter: nil,
+		pilotFilter:   nil,
 	}
 }

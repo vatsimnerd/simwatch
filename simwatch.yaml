@@ -1,0 +1,18 @@
+log_level: info
+api:
+  url: https://data.vatsim.net/v3/vatsim-data.json
+  poll:
+    period: 15s
+    timeout: 5s
+  boot:
+    retries: 5
+    retry_cooldown: 3s
+data:
+  data_url: https://raw.githubusercontent.com/vatsimnetwork/vatspy-data-project/master/VATSpy.dat
+  boundaries_url: https://raw.githubusercontent.com/vatsimnetwork/vatspy-data-project/master/Boundaries.geojson
+  poll:
+    period: 15s
+    timeout: 5s
+  boot:
+    retries: 5
+    retry_cooldown: 3s

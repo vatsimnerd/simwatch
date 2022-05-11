@@ -32,11 +32,27 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 		l.WithError(err).Error("error upgrading connection")
 		w.WriteHeader(500)
 	}
-
 	reqChan := readRequests(sock)
+	sub := s.provider.Subscribe(1024)
 
-	for upd := range reqChan {
-		fmt.Println(upd)
+	for {
+		select {
+		case req := <-reqChan:
+			if req.err != nil {
+				continue
+			}
+
+			switch req.request.Type {
+			case RequestTypeBounds:
+				bounds := req.request.Bounds
+				sub.SetBounds(bounds)
+			case RequestTypeAirportsFilter:
+				sub.SetAirportFilter(req.request.AirportFilter.IncludeUncontrolled)
+			}
+		case evt := <-sub.Events():
+			fmt.Println(evt)
+		}
+
 	}
 }
 

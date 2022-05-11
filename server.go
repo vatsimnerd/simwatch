@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/vatsimnerd/simwatch/config"
 	"github.com/vatsimnerd/simwatch/provider"
 )
 
@@ -15,10 +16,10 @@ type Server struct {
 	addr     string
 }
 
-func NewServer(addr string) *Server {
+func NewServer(cfg *config.Config) *Server {
 	return &Server{
-		provider: provider.New(),
-		addr:     addr,
+		provider: provider.New(cfg),
+		addr:     cfg.Web.Addr,
 	}
 }
 
