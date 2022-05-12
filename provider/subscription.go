@@ -10,8 +10,14 @@ type Subscription struct {
 	pilotFilter   geoidx.Filter
 }
 
-func (s *Subscription) SetPilotFilter() {
-
+func (s *Subscription) SetPilotFilter(query string) error {
+	flt, err := pilotFilter(query)
+	if err != nil {
+		return err
+	}
+	s.pilotFilter = flt
+	s.resetFilters()
+	return nil
 }
 
 func (s *Subscription) SetAirportFilter(includeUncontrolled bool) {
