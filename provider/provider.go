@@ -112,11 +112,11 @@ func (p *Provider) setAirport(obj interface{}) error {
 		squareCentered(arpt.Meta.Position.Lat, arpt.Meta.Position.Lng, airportSizeNM),
 		arpt,
 	)
-	l.Debug("upserting airport geo object")
+	l.Trace("upserting airport geo object")
 	p.idx.Upsert(iobj)
 
 	p.dataLock.Lock()
-	l.Debug("inserting airport to index")
+	l.Trace("inserting airport to index")
 	p.airports[arpt.Meta.ICAO] = arpt
 	p.dataLock.Unlock()
 
@@ -139,10 +139,10 @@ func (p *Provider) deleteAirport(obj interface{}) error {
 		squareCentered(arpt.Meta.Position.Lat, arpt.Meta.Position.Lng, airportSizeNM),
 		arpt,
 	)
-	l.Debug("deleting airport geo object")
+	l.Trace("deleting airport geo object")
 	p.idx.Delete(iobj)
 
-	l.Debug("deleting airport from index")
+	l.Trace("deleting airport from index")
 	p.dataLock.Lock()
 	delete(p.airports, arpt.Meta.ICAO)
 	p.dataLock.Unlock()
@@ -166,10 +166,10 @@ func (p *Provider) setPilot(obj interface{}) error {
 		squareCentered(pilot.Latitude, pilot.Longitude, planeSizeNM),
 		pilot,
 	)
-	l.Debug("upserting pilot geo object")
+	l.Trace("upserting pilot geo object")
 	p.idx.Upsert(iobj)
 
-	l.Debug("inserting pilot to index")
+	l.Trace("inserting pilot to index")
 	p.dataLock.Lock()
 	p.pilots[pilot.Callsign] = pilot
 	p.dataLock.Unlock()
@@ -193,10 +193,10 @@ func (p *Provider) deletePilot(obj interface{}) error {
 		squareCentered(pilot.Latitude, pilot.Longitude, planeSizeNM),
 		pilot,
 	)
-	l.Debug("deleting pilot geo object")
+	l.Trace("deleting pilot geo object")
 	p.idx.Delete(iobj)
 
-	l.Debug("deleting pilot from index")
+	l.Trace("deleting pilot from index")
 	p.dataLock.Lock()
 	delete(p.pilots, pilot.Callsign)
 	p.dataLock.Unlock()
@@ -240,10 +240,10 @@ func (p *Provider) setRadar(obj interface{}) error {
 		rect,
 		radar,
 	)
-	l.Debug("upserting radar geo object")
+	l.Trace("upserting radar geo object")
 	p.idx.Upsert(iobj)
 
-	l.Debug("inserting radar to index")
+	l.Trace("inserting radar to index")
 	p.dataLock.Lock()
 	p.radars[radar.Controller.Callsign] = radar
 	p.dataLock.Unlock()
@@ -267,10 +267,10 @@ func (p *Provider) deleteRadar(obj interface{}) error {
 		rect,
 		radar,
 	)
-	l.Debug("deleting radar geo object")
+	l.Trace("deleting radar geo object")
 	p.idx.Delete(iobj)
 
-	l.Debug("deleting radar from index")
+	l.Trace("deleting radar from index")
 	p.dataLock.Lock()
 	delete(p.radars, radar.Controller.Callsign)
 	p.dataLock.Unlock()

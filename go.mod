@@ -7,9 +7,9 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.11.0
-	github.com/vatsimnerd/geoidx v1.2.0
+	github.com/vatsimnerd/geoidx v1.2.2
 	github.com/vatsimnerd/lee v1.0.1
-	github.com/vatsimnerd/simwatch-providers v0.1.2
+	github.com/vatsimnerd/simwatch-providers v0.1.6
 	github.com/vatsimnerd/util v1.0.0
 )
 

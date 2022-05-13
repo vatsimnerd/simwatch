@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"github.com/vatsimnerd/simwatch/config"
 	"github.com/vatsimnerd/simwatch/provider"
 )
@@ -16,6 +17,10 @@ type Server struct {
 	addr     string
 }
 
+var (
+	log = logrus.WithField("module", "server")
+)
+
 func NewServer(cfg *config.Config) *Server {
 	return &Server{
 		provider: provider.New(cfg),
@@ -24,19 +29,27 @@ func NewServer(cfg *config.Config) *Server {
 }
 
 func (s *Server) Start() error {
+	l := log.WithField("func", "Start")
+	l.Info("starting simwatch provider")
 	s.provider.Start()
+
+	l.Info("setting up router")
 	router := mux.NewRouter()
 	router.HandleFunc("/api/updates", s.handleApiUpdates).Methods("GET")
 
+	l.WithField("addr", s.addr).Info("creating http server")
 	s.srv = &http.Server{
 		Addr:    s.addr,
 		Handler: router,
 	}
 
+	l.Info("entering http server loop")
 	return s.srv.ListenAndServe()
 }
 
 func (s *Server) Stop() error {
+	l := log.WithField("func", "Stop")
+	l.Info("stopping http server")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	return s.srv.Shutdown(ctx)

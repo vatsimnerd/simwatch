@@ -1,0 +1,16 @@
+{
+  "name": "test_ui",
+  "source": "src/index.html",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "start": "parcel",
+    "build": "parcel build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "parcel": "^2.5.0"
+  }
+}

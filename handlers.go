@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -20,8 +19,6 @@ var (
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
-
-	log = logrus.WithField("module", "simwatch")
 )
 
 func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
@@ -35,11 +32,17 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 	reqChan := readRequests(sock)
 	sub := s.provider.Subscribe(1024)
 
+loop:
 	for {
 		select {
-		case req := <-reqChan:
+		case req, ok := <-reqChan:
+			if !ok {
+				l.Debug("connection closed")
+				return
+			}
+
 			if req.err != nil {
-				continue
+				continue loop
 			}
 
 			switch req.request.Type {
@@ -48,6 +51,7 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 				sub.SetBounds(bounds)
 			case RequestTypeAirportsFilter:
 				sub.SetAirportFilter(req.request.AirportFilter.IncludeUncontrolled)
+
 			}
 		case evt := <-sub.Events():
 			fmt.Println(evt)
@@ -57,6 +61,7 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 }
 
 func readRequests(sock *websocket.Conn) <-chan *requestBundle {
+	l := log.WithField("func", "readRequests")
 	ch := make(chan *requestBundle, 1024)
 
 	go func() {
@@ -64,8 +69,9 @@ func readRequests(sock *websocket.Conn) <-chan *requestBundle {
 
 		for {
 			_, buf, err := sock.ReadMessage()
+			l.WithField("buf", string(buf)).WithError(err).Info("message from client")
 			if err != nil {
-				log.WithError(err).Error("error reading message")
+				l.WithError(err).Error("error reading message")
 				ch <- &requestBundle{
 					request: nil,
 					err:     err,
@@ -77,7 +83,7 @@ func readRequests(sock *websocket.Conn) <-chan *requestBundle {
 			err = json.Unmarshal(buf, req)
 
 			if err != nil {
-				log.WithError(err).Error("error parsing spy request")
+				l.WithError(err).Error("error parsing spy request")
 				ch <- &requestBundle{
 					request: req,
 					err:     err,
@@ -99,7 +105,7 @@ func readRequests(sock *websocket.Conn) <-chan *requestBundle {
 			}
 
 			if err != nil {
-				log.WithError(err).WithField("req_type", req.Type).Error("error parsing request payload")
+				l.WithError(err).WithField("req_type", req.Type).Error("error parsing request payload")
 			}
 
 			ch <- &requestBundle{

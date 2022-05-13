@@ -1,4 +1,6 @@
-log_level: info
+log_level: debug
+web:
+  addr: localhost:5000
 api:
   url: https://data.vatsim.net/v3/vatsim-data.json
   poll:

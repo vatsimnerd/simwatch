@@ -184,6 +184,12 @@ github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/vatsimnerd/geoidx v1.2.0 h1:B+Etc8IP/ot7NYIdikeYxt42P0yTMnYoNKyjajP5qWY=
 github.com/vatsimnerd/geoidx v1.2.0/go.mod h1:81OHoXyuwQsFvIPD/uNejmyutb/ljIwjPLM6pVptPXg=
+github.com/vatsimnerd/geoidx v1.2.1 h1:SKruQWsQWrHaofkfXwqihf0RfWUEprwAlkyuV6YBKuk=
+github.com/vatsimnerd/geoidx v1.2.1/go.mod h1:81OHoXyuwQsFvIPD/uNejmyutb/ljIwjPLM6pVptPXg=
+github.com/vatsimnerd/geoidx v1.2.2 h1:xUEf+hirXmDNYeAhFLkp9qfXXQ1Wa1+jzSmeOIoiiYI=
+github.com/vatsimnerd/geoidx v1.2.2/go.mod h1:81OHoXyuwQsFvIPD/uNejmyutb/ljIwjPLM6pVptPXg=
+github.com/vatsimnerd/geoidx v1.2.3 h1:tDz7fDQuo2bdORB+j67N366Z921jdzHwDy0rOr3RipU=
+github.com/vatsimnerd/geoidx v1.2.3/go.mod h1:81OHoXyuwQsFvIPD/uNejmyutb/ljIwjPLM6pVptPXg=
 github.com/vatsimnerd/lee v1.0.0 h1:hpBBH/G5Y25hX/zOJzZINBqabibnU4EWJeHwIfPtpco=
 github.com/vatsimnerd/lee v1.0.0/go.mod h1:XmASsqby/SyMyLrgOGpdE8Zg6Zg2navGbMERi9NWCk0=
 github.com/vatsimnerd/lee v1.0.1 h1:Y9qbCNXu/Qq5nDf6oZ6wJOY1E9zGXEYLgJPCFzpgsZs=
@@ -192,6 +198,8 @@ github.com/vatsimnerd/perfetch v0.9.3 h1:Hl0+CT9C68yokVh6hpFiKAEVI22qq7YLDciw06O
 github.com/vatsimnerd/perfetch v0.9.3/go.mod h1:H8HQGWU9duYy9YcM3nj/VfFzV+W23QBkDQBrJ3emomA=
 github.com/vatsimnerd/simwatch-providers v0.1.2 h1:p982rxX7E3WTdacJq32wLb2Q7ryI9mRruEezmbt84RA=
 github.com/vatsimnerd/simwatch-providers v0.1.2/go.mod h1:GMETABFn7tevd2Mfd+Hc1TX9fGLQSoFvCuSxooMYFXY=
+github.com/vatsimnerd/simwatch-providers v0.1.6 h1:A7nzkUUvS/yKMPZat/xqjoP1tXSfBBoWLJFTNhfSDgM=
+github.com/vatsimnerd/simwatch-providers v0.1.6/go.mod h1:vzMapRXm/rkmFNcMMMb/hc2j+zAGzNLbCuQZ1qcV650=
 github.com/vatsimnerd/util v1.0.0 h1:wepumseIsiSInqOBpE/+nmNGV2a2r4OupCTsjUqBbdo=
 github.com/vatsimnerd/util v1.0.0/go.mod h1:6v53a+8QsJwVDfqvF+fnC9+nBvRq0TH/gSjc/sky3Jk=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

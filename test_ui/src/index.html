@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="app.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    <title>SimWatch test UI</title>
+  </head>
+  <body>
+    <div class="app">
+      <div class="query">
+        <h3>Bounds</h3>
+        <div class="row mb-3">
+          <div class="col">
+            <input
+              type="number"
+              class="form-control mb-2"
+              id="swlat"
+              value="44.27682358884445"
+              placeholder="SW Latitude"
+            />
+            <input
+              type="number"
+              class="form-control"
+              value="-4.0948867187483415"
+              id="swlng"
+              placeholder="SW Longitude"
+            />
+          </div>
+          <div class="col">
+            <input
+              type="number"
+              class="form-control mb-2"
+              value="57.16019363349409"
+              id="nelat"
+              placeholder="NE Latitude"
+            />
+            <input
+              type="number"
+              class="form-control"
+              value="20.997886718751573"
+              id="nelng"
+              placeholder="NE Longitude"
+            />
+          </div>
+          <div class="col-6">
+            <button class="btn btn-primary" type="submit" id="submitBounds">
+              Submit
+            </button>
+          </div>
+        </div>
+        <h3>Plane Filter</h3>
+        <div class="querysection"></div>
+        <h3>Airport Filter</h3>
+        <div class="querysection"></div>
+      </div>
+      <div class="log"></div>
+    </div>
+  </body>
+</html>
