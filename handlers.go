@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/vatsimnerd/geoidx"
+	"github.com/vatsimnerd/simwatch-providers/merged"
 	"github.com/vatsimnerd/simwatch/provider"
 )
 
@@ -74,6 +74,8 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		log.WithField("req", req).Debug("request received")
+
 		switch req.Type {
 		case RequestTypeBounds:
 			bounds := req.Bounds
@@ -96,16 +98,27 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 			if !ok {
 				return
 			}
+			obj := &ObjectUpdate{Obj: event.Obj.Value()}
+
+			switch event.Obj.Value().(type) {
+			case merged.Airport:
+				obj.OType = "arpt"
+			case merged.Radar:
+				obj.OType = "rdr"
+			case merged.Pilot:
+				obj.OType = "plt"
+			}
+
+			switch event.Type {
+			case geoidx.EventTypeSet:
+				obj.EType = "set"
+			case geoidx.EventTypeDelete:
+				obj.EType = "del"
+			}
+
 			msg := &Message{
-				ID:   uuid.NewString(),
-				Type: MessageTypeUpdate,
-				Payload: struct {
-					EType geoidx.EventType `json:"type"`
-					Obj   interface{}      `json:"obj"`
-				}{
-					EType: event.Type,
-					Obj:   event.Obj.Value(),
-				},
+				Type:    MessageTypeUpdate,
+				Payload: obj,
 			}
 			sock.WriteJSON(msg)
 		case msg := <-mc:
@@ -116,7 +129,6 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 
 func sendErrorMessage(mc chan *Message, reqID string, err error) {
 	msg := &Message{
-		ID:   uuid.NewString(),
 		Type: MessageTypeError,
 		Payload: struct {
 			Error     string `json:"error"`
@@ -131,8 +143,7 @@ func sendErrorMessage(mc chan *Message, reqID string, err error) {
 
 func sendStatusMessage(mc chan *Message, reqID string, status string) {
 	msg := &Message{
-		ID:   uuid.NewString(),
-		Type: MessageTypeError,
+		Type: MessageTypeStatus,
 		Payload: struct {
 			Status    string `json:"status"`
 			RequestID string `json:"req_id"`

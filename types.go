@@ -33,9 +33,14 @@ type (
 	}
 
 	Message struct {
-		ID      string      `json:"id"`
 		Type    MessageType `json:"type"`
 		Payload interface{} `json:"payload"`
+	}
+
+	ObjectUpdate struct {
+		EType string      `json:"e_type"`
+		OType string      `json:"o_type"`
+		Obj   interface{} `json:"obj"`
 	}
 
 	RequestBounds = geoidx.Rect
@@ -43,8 +48,8 @@ type (
 
 const (
 	RequestTypeBounds         RequestType = "bounds"
-	RequestTypeAirportsFilter RequestType = "airports_filter"
-	RequestTypePilotsFilter   RequestType = "pilots_filter"
+	RequestTypeAirportsFilter RequestType = "airport_filter"
+	RequestTypePilotsFilter   RequestType = "pilot_filter"
 	RequestTypeSubscribeID    RequestType = "sub_id"
 	RequestTypeUnsubscribeID  RequestType = "unsub_id"
 

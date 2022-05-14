@@ -12,9 +12,12 @@ const store = createStore({
     log(state, msg) {
       state.logLines = [...state.logLines, msg];
     },
+    clearLog(state) {
+      state.logLines = [];
+    },
     inc(state) {
       state.reqID++;
-    }
+    },
   },
   actions: {
     setBounds(context, bounds) {
@@ -26,9 +29,16 @@ const store = createStore({
         payload: bounds,
       };
 
-      context.commit("log", request)
-
-      ws.send(JSON.stringify(request))
+      ws.send(JSON.stringify(request));
+    },
+    setPilotFilter(context, query) {
+      context.commit("inc");
+      const request = {
+        id: `${context.state.reqID}`,
+        type: "pilots_filter",
+        payload: { query },
+      };
+      ws.send(JSON.stringify(request));
     },
   },
   modules: {},
@@ -36,10 +46,10 @@ const store = createStore({
 
 export default store;
 
-ws.addEventListener("open", (e) => {
-  store.commit("log", `open ${JSON.stringify(e)}`)
+ws.addEventListener("open", () => {
+  store.commit("log", "connection open");
 });
 
 ws.addEventListener("message", (e) => {
-  store.commit("log", `message ${e.data}`)
+  store.commit("log", `message ${e.data}`);
 });

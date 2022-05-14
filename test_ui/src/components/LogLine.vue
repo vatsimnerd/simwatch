@@ -14,6 +14,9 @@ export default {
 };
 </script>
 
-<style scoped>
-
+<style >
+.logline {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.85em;
+}
 </style>

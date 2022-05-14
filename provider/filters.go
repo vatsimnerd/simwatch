@@ -14,9 +14,16 @@ import (
 )
 
 func airportFilter(includeUncontrolled bool) geoidx.Filter {
+	log := logrus.WithFields(logrus.Fields{
+		"func":                 "planeFilter",
+		"include_uncontrolled": includeUncontrolled,
+	})
+	log.Debug("setting arpt filter")
+
 	if !includeUncontrolled {
 		return func(obj *geoidx.Object) bool {
 			if arpt, ok := obj.Value().(merged.Airport); ok {
+				log.WithField("is_ctrl", arpt.IsControlled()).Debug("running arpt filter")
 				return arpt.IsControlled()
 			}
 			return true
