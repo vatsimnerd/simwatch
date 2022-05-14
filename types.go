@@ -7,8 +7,8 @@ import (
 )
 
 type (
-	RequestType  string
-	ResponseType string
+	RequestType string
+	MessageType string
 
 	Request struct {
 		ID            string               `json:"id"`
@@ -32,11 +32,10 @@ type (
 		ID string `json:"id"`
 	}
 
-	Response struct {
-		ID        string       `json:"id"`
-		RequestID string       `json:"req_id"`
-		Type      ResponseType `json:"type"`
-		Payload   interface{}  `json:"payload"`
+	Message struct {
+		ID      string      `json:"id"`
+		Type    MessageType `json:"type"`
+		Payload interface{} `json:"payload"`
 	}
 
 	RequestBounds = geoidx.Rect
@@ -49,7 +48,7 @@ const (
 	RequestTypeSubscribeID    RequestType = "sub_id"
 	RequestTypeUnsubscribeID  RequestType = "unsub_id"
 
-	ResponseTypeUpdate ResponseType = "update"
-	ResponseTypeStatus ResponseType = "status"
-	ResponseTypeError  ResponseType = "error"
+	MessageTypeUpdate MessageType = "update"
+	MessageTypeStatus MessageType = "status"
+	MessageTypeError  MessageType = "error"
 )

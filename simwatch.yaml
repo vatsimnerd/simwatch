@@ -13,7 +13,7 @@ data:
   data_url: https://raw.githubusercontent.com/vatsimnetwork/vatspy-data-project/master/VATSpy.dat
   boundaries_url: https://raw.githubusercontent.com/vatsimnetwork/vatspy-data-project/master/Boundaries.geojson
   poll:
-    period: 15s
+    period: 24h
     timeout: 5s
   boot:
     retries: 5

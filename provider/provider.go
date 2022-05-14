@@ -285,3 +285,7 @@ func (p *Provider) Subscribe(chSize int) *Subscription {
 		pilotFilter:   nil,
 	}
 }
+
+func (p *Provider) Unsubscribe(sub *Subscription) {
+	p.idx.Unsubscribe(sub.Subscription)
+}

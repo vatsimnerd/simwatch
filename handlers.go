@@ -2,17 +2,12 @@ package simwatch
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-)
-
-type (
-	requestBundle struct {
-		request *Request
-		err     error
-	}
+	"github.com/vatsimnerd/geoidx"
+	"github.com/vatsimnerd/simwatch/provider"
 )
 
 var (
@@ -28,92 +23,123 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		l.WithError(err).Error("error upgrading connection")
 		w.WriteHeader(500)
+		return
 	}
-	reqChan := readRequests(sock)
+
 	sub := s.provider.Subscribe(1024)
+	defer s.provider.Unsubscribe(sub)
 
-loop:
+	mc := make(chan *Message, 1024)
+	// every client request may result in a huge amount of
+	// events sent via subscription channel so we must make sure
+	// that those are processed independently in a separate thread
+	//
+	// also websocket doesn't allow concurrent writing so this
+	// goroutine must be the only one writing to a ws connection
+	go sendMessages(sock, sub, mc)
+	defer close(mc)
+
 	for {
-		select {
-		case req, ok := <-reqChan:
-			if !ok {
-				l.Debug("connection closed")
-				return
-			}
-
-			if req.err != nil {
-				continue loop
-			}
-
-			switch req.request.Type {
-			case RequestTypeBounds:
-				bounds := req.request.Bounds
-				sub.SetBounds(bounds)
-			case RequestTypeAirportsFilter:
-				sub.SetAirportFilter(req.request.AirportFilter.IncludeUncontrolled)
-
-			}
-		case evt := <-sub.Events():
-			fmt.Println(evt)
+		_, buf, err := sock.ReadMessage()
+		l.WithField("buf", string(buf)).WithError(err).Info("message from client")
+		if err != nil {
+			l.WithError(err).Error("error reading message")
+			break
 		}
 
+		req := &Request{}
+		err = json.Unmarshal(buf, req)
+
+		if err != nil {
+			l.WithError(err).Error("error parsing request")
+			continue
+		}
+
+		switch req.Type {
+		case RequestTypeBounds:
+			err = json.Unmarshal(req.Payload, &req.Bounds)
+		case RequestTypeAirportsFilter:
+			err = json.Unmarshal(req.Payload, &req.AirportFilter)
+		case RequestTypePilotsFilter:
+			err = json.Unmarshal(req.Payload, &req.AirportFilter)
+		case RequestTypeSubscribeID:
+			fallthrough
+		case RequestTypeUnsubscribeID:
+			err = json.Unmarshal(req.Payload, &req.SubID)
+		}
+
+		if err != nil {
+			l.WithError(err).WithField("req_type", req.Type).Error("error parsing request payload")
+			sendErrorMessage(mc, req.ID, err)
+			continue
+		}
+
+		switch req.Type {
+		case RequestTypeBounds:
+			bounds := req.Bounds
+			sub.SetBounds(bounds)
+			sendStatusMessage(mc, req.ID, "bounds set")
+		case RequestTypeAirportsFilter:
+			sub.SetAirportFilter(req.AirportFilter.IncludeUncontrolled)
+			sendStatusMessage(mc, req.ID, "airport filter set")
+		case RequestTypePilotsFilter:
+			sub.SetPilotFilter(req.PilotFilter.Query)
+			sendStatusMessage(mc, req.ID, "pilot filter set")
+		}
 	}
 }
 
-func readRequests(sock *websocket.Conn) <-chan *requestBundle {
-	l := log.WithField("func", "readRequests")
-	ch := make(chan *requestBundle, 1024)
-
-	go func() {
-		defer close(ch)
-
-		for {
-			_, buf, err := sock.ReadMessage()
-			l.WithField("buf", string(buf)).WithError(err).Info("message from client")
-			if err != nil {
-				l.WithError(err).Error("error reading message")
-				ch <- &requestBundle{
-					request: nil,
-					err:     err,
-				}
-				break
+func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *Message) {
+	for {
+		select {
+		case event, ok := <-sub.Events():
+			if !ok {
+				return
 			}
-
-			req := &Request{}
-			err = json.Unmarshal(buf, req)
-
-			if err != nil {
-				l.WithError(err).Error("error parsing spy request")
-				ch <- &requestBundle{
-					request: req,
-					err:     err,
-				}
-				continue
+			msg := &Message{
+				ID:   uuid.NewString(),
+				Type: MessageTypeUpdate,
+				Payload: struct {
+					EType geoidx.EventType `json:"type"`
+					Obj   interface{}      `json:"obj"`
+				}{
+					EType: event.Type,
+					Obj:   event.Obj.Value(),
+				},
 			}
-
-			switch req.Type {
-			case RequestTypeBounds:
-				err = json.Unmarshal(req.Payload, &req.Bounds)
-			case RequestTypeAirportsFilter:
-				err = json.Unmarshal(req.Payload, &req.AirportFilter)
-			case RequestTypePilotsFilter:
-				err = json.Unmarshal(req.Payload, &req.AirportFilter)
-			case RequestTypeSubscribeID:
-				fallthrough
-			case RequestTypeUnsubscribeID:
-				err = json.Unmarshal(req.Payload, &req.SubID)
-			}
-
-			if err != nil {
-				l.WithError(err).WithField("req_type", req.Type).Error("error parsing request payload")
-			}
-
-			ch <- &requestBundle{
-				request: req,
-				err:     err,
-			}
+			sock.WriteJSON(msg)
+		case msg := <-mc:
+			sock.WriteJSON(msg)
 		}
-	}()
+	}
+}
 
-	return ch
+func sendErrorMessage(mc chan *Message, reqID string, err error) {
+	msg := &Message{
+		ID:   uuid.NewString(),
+		Type: MessageTypeError,
+		Payload: struct {
+			Error     string `json:"error"`
+			RequestID string `json:"req_id"`
+		}{
+			Error:     err.Error(),
+			RequestID: reqID,
+		},
+	}
+	mc <- msg
+}
+
+func sendStatusMessage(mc chan *Message, reqID string, status string) {
+	msg := &Message{
+		ID:   uuid.NewString(),
+		Type: MessageTypeError,
+		Payload: struct {
+			Status    string `json:"status"`
+			RequestID string `json:"req_id"`
+		}{
+			Status:    status,
+			RequestID: reqID,
+		},
+	}
+	mc <- msg
 }

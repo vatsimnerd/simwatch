@@ -190,6 +190,8 @@ github.com/vatsimnerd/geoidx v1.2.2 h1:xUEf+hirXmDNYeAhFLkp9qfXXQ1Wa1+jzSmeOIoii
 github.com/vatsimnerd/geoidx v1.2.2/go.mod h1:81OHoXyuwQsFvIPD/uNejmyutb/ljIwjPLM6pVptPXg=
 github.com/vatsimnerd/geoidx v1.2.3 h1:tDz7fDQuo2bdORB+j67N366Z921jdzHwDy0rOr3RipU=
 github.com/vatsimnerd/geoidx v1.2.3/go.mod h1:81OHoXyuwQsFvIPD/uNejmyutb/ljIwjPLM6pVptPXg=
+github.com/vatsimnerd/geoidx v1.2.4 h1:Ej6jO1YaOdqOyDCGwO55uSz+hKINKbBH5G52//9FO6U=
+github.com/vatsimnerd/geoidx v1.2.4/go.mod h1:81OHoXyuwQsFvIPD/uNejmyutb/ljIwjPLM6pVptPXg=
 github.com/vatsimnerd/lee v1.0.0 h1:hpBBH/G5Y25hX/zOJzZINBqabibnU4EWJeHwIfPtpco=
 github.com/vatsimnerd/lee v1.0.0/go.mod h1:XmASsqby/SyMyLrgOGpdE8Zg6Zg2navGbMERi9NWCk0=
 github.com/vatsimnerd/lee v1.0.1 h1:Y9qbCNXu/Qq5nDf6oZ6wJOY1E9zGXEYLgJPCFzpgsZs=
@@ -200,6 +202,12 @@ github.com/vatsimnerd/simwatch-providers v0.1.2 h1:p982rxX7E3WTdacJq32wLb2Q7ryI9
 github.com/vatsimnerd/simwatch-providers v0.1.2/go.mod h1:GMETABFn7tevd2Mfd+Hc1TX9fGLQSoFvCuSxooMYFXY=
 github.com/vatsimnerd/simwatch-providers v0.1.6 h1:A7nzkUUvS/yKMPZat/xqjoP1tXSfBBoWLJFTNhfSDgM=
 github.com/vatsimnerd/simwatch-providers v0.1.6/go.mod h1:vzMapRXm/rkmFNcMMMb/hc2j+zAGzNLbCuQZ1qcV650=
+github.com/vatsimnerd/simwatch-providers v0.1.7 h1:0ceLjamVe4FJFBJDIQNUnpZwL92iyHPTpW+qmIHr5UY=
+github.com/vatsimnerd/simwatch-providers v0.1.7/go.mod h1:vzMapRXm/rkmFNcMMMb/hc2j+zAGzNLbCuQZ1qcV650=
+github.com/vatsimnerd/simwatch-providers v0.1.8 h1:X1aAIC57Y4luaTUC00gR5DtIOnX4Bw0N6W88fWRv/LA=
+github.com/vatsimnerd/simwatch-providers v0.1.8/go.mod h1:vzMapRXm/rkmFNcMMMb/hc2j+zAGzNLbCuQZ1qcV650=
+github.com/vatsimnerd/simwatch-providers v0.1.9 h1:m9IYrvy9TddoZW7gqoX3uowHYejjLZWFTl0AFJyJoU4=
+github.com/vatsimnerd/simwatch-providers v0.1.9/go.mod h1:vzMapRXm/rkmFNcMMMb/hc2j+zAGzNLbCuQZ1qcV650=
 github.com/vatsimnerd/util v1.0.0 h1:wepumseIsiSInqOBpE/+nmNGV2a2r4OupCTsjUqBbdo=
 github.com/vatsimnerd/util v1.0.0/go.mod h1:6v53a+8QsJwVDfqvF+fnC9+nBvRq0TH/gSjc/sky3Jk=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
@@ -340,6 +348,8 @@ golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 h1:nonptSpoQ4vQjyraW20DXPAglgQfVnM9ZC6MmNLMR60=
 golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220513210249-45d2b4557a2a h1:N2T1jUrTQE9Re6TFF5PhvEHXHCguynGhKjWVsIUt5cY=
+golang.org/x/sys v0.0.0-20220513210249-45d2b4557a2a/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
