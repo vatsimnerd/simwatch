@@ -2,17 +2,23 @@ package provider
 
 import (
 	"fmt"
+	"sort"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/vatsimnerd/geoidx"
 	"github.com/vatsimnerd/simwatch-providers/merged"
 	"github.com/vatsimnerd/simwatch/config"
+	"github.com/vatsimnerd/simwatch/track"
+	"github.com/vatsimnerd/simwatch/track/memory"
 	"github.com/vatsimnerd/util/pubsub"
 )
 
 var (
 	log = logrus.WithField("module", "simwatch.provider")
+
+	ErrNotFound = fmt.Errorf("object not found")
 )
 
 type Provider struct {
@@ -40,6 +46,7 @@ func New(cfg *config.Config) *Provider {
 }
 
 func (p *Provider) Start() error {
+	track.Configure(&memory.Config{PurgePeriod: 24 * time.Hour})
 	err := p.vatsim.Start()
 	if err != nil {
 		return err
@@ -180,7 +187,10 @@ func (p *Provider) setPilot(obj interface{}) error {
 	p.pilots[pilot.Callsign] = pilot
 	p.dataLock.Unlock()
 
-	return nil
+	l.Trace("writing pilot's track")
+
+	err := track.WriteTrack(&pilot)
+	return err
 }
 
 func (p *Provider) deletePilot(obj interface{}) error {
@@ -294,4 +304,29 @@ func (p *Provider) Subscribe(chSize int) *Subscription {
 
 func (p *Provider) Unsubscribe(sub *Subscription) {
 	p.idx.Unsubscribe(sub.Subscription)
+}
+
+func (p *Provider) GetPilots() []merged.Pilot {
+	p.dataLock.RLock()
+	pilots := make([]merged.Pilot, len(p.pilots))
+	c := 0
+	for _, pilot := range p.pilots {
+		pilots[c] = pilot
+		c++
+	}
+	p.dataLock.RUnlock()
+
+	sort.Slice(pilots, func(i, j int) bool {
+		return pilots[i].Callsign < pilots[j].Callsign
+	})
+	return pilots
+}
+
+func (p *Provider) GetPilotByCallsign(callsign string) (*merged.Pilot, error) {
+	p.dataLock.RLock()
+	defer p.dataLock.RUnlock()
+	if pilot, found := p.pilots[callsign]; found {
+		return &pilot, nil
+	}
+	return nil, ErrNotFound
 }
