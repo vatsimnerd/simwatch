@@ -9,8 +9,8 @@ require (
 	github.com/spf13/viper v1.11.0
 	github.com/vatsimnerd/geoidx v1.2.4
 	github.com/vatsimnerd/lee v1.0.1
-	github.com/vatsimnerd/simwatch-providers v0.1.9
-	github.com/vatsimnerd/util v1.0.0
+	github.com/vatsimnerd/simwatch-providers v0.1.10
+	github.com/vatsimnerd/util v1.0.1
 )
 
 require (

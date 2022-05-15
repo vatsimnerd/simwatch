@@ -208,8 +208,12 @@ github.com/vatsimnerd/simwatch-providers v0.1.8 h1:X1aAIC57Y4luaTUC00gR5DtIOnX4B
 github.com/vatsimnerd/simwatch-providers v0.1.8/go.mod h1:vzMapRXm/rkmFNcMMMb/hc2j+zAGzNLbCuQZ1qcV650=
 github.com/vatsimnerd/simwatch-providers v0.1.9 h1:m9IYrvy9TddoZW7gqoX3uowHYejjLZWFTl0AFJyJoU4=
 github.com/vatsimnerd/simwatch-providers v0.1.9/go.mod h1:vzMapRXm/rkmFNcMMMb/hc2j+zAGzNLbCuQZ1qcV650=
+github.com/vatsimnerd/simwatch-providers v0.1.10 h1:umGEz5rQ1vFceYybKlzG+GwAxMnWXkpD2GQDAlDTY+U=
+github.com/vatsimnerd/simwatch-providers v0.1.10/go.mod h1:vzMapRXm/rkmFNcMMMb/hc2j+zAGzNLbCuQZ1qcV650=
 github.com/vatsimnerd/util v1.0.0 h1:wepumseIsiSInqOBpE/+nmNGV2a2r4OupCTsjUqBbdo=
 github.com/vatsimnerd/util v1.0.0/go.mod h1:6v53a+8QsJwVDfqvF+fnC9+nBvRq0TH/gSjc/sky3Jk=
+github.com/vatsimnerd/util v1.0.1 h1:xh7/o1cWrv8RwmZsmYhIuCpKugtscdTsNs1WHR0C+Nk=
+github.com/vatsimnerd/util v1.0.1/go.mod h1:6v53a+8QsJwVDfqvF+fnC9+nBvRq0TH/gSjc/sky3Jk=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

@@ -61,9 +61,15 @@ func (p *Provider) loop() {
 	s := p.vatsim.Subscribe(1024)
 	defer p.vatsim.Unsubscribe(s)
 
+	count := 0
+
 	for {
 		select {
 		case upd := <-s.Updates():
+			count++
+			if count%1000 == 0 {
+				l.Debugf("accumulated %d updates from merged provider", count)
+			}
 			switch upd.UType {
 			case pubsub.UpdateTypeSet:
 				switch upd.OType {
