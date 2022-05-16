@@ -9,7 +9,7 @@ require (
 	github.com/spf13/viper v1.11.0
 	github.com/vatsimnerd/geoidx v1.2.4
 	github.com/vatsimnerd/lee v1.0.1
-	github.com/vatsimnerd/simwatch-providers v0.1.10
+	github.com/vatsimnerd/simwatch-providers v0.2.1
 	github.com/vatsimnerd/util v1.0.1
 )
 
@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/paulmach/orb v0.7.0 // indirect
+	github.com/paulmach/orb v0.7.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/spf13/afero v1.8.2 // indirect

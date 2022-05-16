@@ -59,5 +59,4 @@ func (s *Server) handleApiPilotsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(data)
-
 }

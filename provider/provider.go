@@ -35,7 +35,7 @@ type Provider struct {
 
 func New(cfg *config.Config) *Provider {
 	return &Provider{
-		vatsim: merged.New(&cfg.API, &cfg.Data),
+		vatsim: merged.New(&cfg.API, &cfg.Data, &cfg.Runways),
 		stop:   make(chan bool),
 		idx:    geoidx.NewIndex(),
 
@@ -65,7 +65,7 @@ func (p *Provider) loop() {
 
 	defer p.vatsim.Stop()
 
-	s := p.vatsim.Subscribe(1024)
+	s := p.vatsim.Subscribe(32768)
 	defer p.vatsim.Unsubscribe(s)
 
 	count := 0
