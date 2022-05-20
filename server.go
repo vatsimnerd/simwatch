@@ -38,6 +38,8 @@ func (s *Server) Start() error {
 	router.HandleFunc("/api/updates", s.handleApiUpdates).Methods("GET")
 	router.HandleFunc("/api/pilots", s.handleApiPilots).Methods("GET")
 	router.HandleFunc("/api/pilots/{id}", s.handleApiPilotsGet).Methods("GET")
+	router.HandleFunc("/api/airports", s.handleApiAirports).Methods("GET")
+	router.HandleFunc("/api/airports/{id}", s.handleApiAirportsGet).Methods("GET")
 
 	l.WithField("addr", s.addr).Info("creating http server")
 	s.srv = &http.Server{

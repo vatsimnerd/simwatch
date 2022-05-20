@@ -9,8 +9,8 @@ require (
 	github.com/spf13/viper v1.11.0
 	github.com/vatsimnerd/geoidx v1.2.4
 	github.com/vatsimnerd/lee v1.0.1
-	github.com/vatsimnerd/simwatch-providers v0.2.1
-	github.com/vatsimnerd/util v1.0.1
+	github.com/vatsimnerd/simwatch-providers v0.2.7
+	github.com/vatsimnerd/util v1.0.2
 )
 
 require (
@@ -29,7 +29,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/vatsimnerd/perfetch v0.9.3 // indirect
-	golang.org/x/sys v0.0.0-20220513210249-45d2b4557a2a // indirect
+	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

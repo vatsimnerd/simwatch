@@ -13,6 +13,7 @@ import (
 	"github.com/vatsimnerd/simwatch/track"
 	"github.com/vatsimnerd/simwatch/track/memory"
 	"github.com/vatsimnerd/util/pubsub"
+	"github.com/vatsimnerd/util/set"
 )
 
 var (
@@ -26,9 +27,11 @@ type Provider struct {
 	stop   chan bool
 	idx    *geoidx.Index
 
-	airports map[string]merged.Airport
-	pilots   map[string]merged.Pilot
-	radars   map[string]merged.Radar
+	airports map[string]*merged.Airport
+	pilots   map[string]*merged.Pilot
+	radars   map[string]*merged.Radar
+
+	airportTrace *set.SafeSet[string]
 
 	dataLock sync.RWMutex
 }
@@ -39,9 +42,11 @@ func New(cfg *config.Config) *Provider {
 		stop:   make(chan bool),
 		idx:    geoidx.NewIndex(),
 
-		airports: make(map[string]merged.Airport),
-		pilots:   make(map[string]merged.Pilot),
-		radars:   make(map[string]merged.Radar),
+		airports: make(map[string]*merged.Airport),
+		pilots:   make(map[string]*merged.Pilot),
+		radars:   make(map[string]*merged.Radar),
+
+		airportTrace: set.NewSafe[string](),
 	}
 }
 
@@ -120,17 +125,28 @@ func (p *Provider) setAirport(obj interface{}) error {
 		return fmt.Errorf("unexpected type %T, expected to be Airport", obj)
 	}
 
+	trace := p.airportTrace.Has(arpt.Meta.ICAO)
+
 	iobj := geoidx.NewObject(
 		arpt.Meta.ICAO,
 		squareCentered(arpt.Meta.Position.Lat, arpt.Meta.Position.Lng, airportSizeNM),
-		arpt,
+		&arpt,
 	)
-	l.Trace("upserting airport geo object")
+
+	if trace {
+		l.Info("upserting airport geo object")
+	} else {
+		l.Trace("upserting airport geo object")
+	}
 	p.idx.Upsert(iobj)
 
 	p.dataLock.Lock()
-	l.Trace("inserting airport to index")
-	p.airports[arpt.Meta.ICAO] = arpt
+	if trace {
+		l.Info("inserting airport to index")
+	} else {
+		l.Trace("inserting airport to index")
+	}
+	p.airports[arpt.Meta.ICAO] = &arpt
 	p.dataLock.Unlock()
 
 	return nil
@@ -147,15 +163,25 @@ func (p *Provider) deleteAirport(obj interface{}) error {
 		return fmt.Errorf("unexpected type %T, expected to be Airport", obj)
 	}
 
+	trace := p.airportTrace.Has(arpt.Meta.ICAO)
+
 	iobj := geoidx.NewObject(
 		arpt.Meta.ICAO,
 		squareCentered(arpt.Meta.Position.Lat, arpt.Meta.Position.Lng, airportSizeNM),
-		arpt,
+		&arpt,
 	)
-	l.Trace("deleting airport geo object")
+	if trace {
+		l.Info("deleting airport geo object")
+	} else {
+		l.Trace("deleting airport geo object")
+	}
 	p.idx.Delete(iobj)
 
-	l.Trace("deleting airport from index")
+	if trace {
+		l.Info("deleting airport from index")
+	} else {
+		l.Trace("deleting airport from index")
+	}
 	p.dataLock.Lock()
 	delete(p.airports, arpt.Meta.ICAO)
 	p.dataLock.Unlock()
@@ -177,14 +203,14 @@ func (p *Provider) setPilot(obj interface{}) error {
 	iobj := geoidx.NewObject(
 		pilot.Callsign,
 		squareCentered(pilot.Latitude, pilot.Longitude, planeSizeNM),
-		pilot,
+		&pilot,
 	)
 	l.Trace("upserting pilot geo object")
 	p.idx.Upsert(iobj)
 
 	l.Trace("inserting pilot to index")
 	p.dataLock.Lock()
-	p.pilots[pilot.Callsign] = pilot
+	p.pilots[pilot.Callsign] = &pilot
 	p.dataLock.Unlock()
 
 	l.Trace("writing pilot's track")
@@ -207,7 +233,7 @@ func (p *Provider) deletePilot(obj interface{}) error {
 	iobj := geoidx.NewObject(
 		pilot.Callsign,
 		squareCentered(pilot.Latitude, pilot.Longitude, planeSizeNM),
-		pilot,
+		&pilot,
 	)
 	l.Trace("deleting pilot geo object")
 	p.idx.Delete(iobj)
@@ -254,14 +280,14 @@ func (p *Provider) setRadar(obj interface{}) error {
 	iobj := geoidx.NewObject(
 		radar.Controller.Callsign,
 		rect,
-		radar,
+		&radar,
 	)
 	l.Trace("upserting radar geo object")
 	p.idx.Upsert(iobj)
 
 	l.Trace("inserting radar to index")
 	p.dataLock.Lock()
-	p.radars[radar.Controller.Callsign] = radar
+	p.radars[radar.Controller.Callsign] = &radar
 	p.dataLock.Unlock()
 
 	return nil
@@ -281,7 +307,7 @@ func (p *Provider) deleteRadar(obj interface{}) error {
 	iobj := geoidx.NewObject(
 		radar.Controller.Callsign,
 		rect,
-		radar,
+		&radar,
 	)
 	l.Trace("deleting radar geo object")
 	p.idx.Delete(iobj)
@@ -306,9 +332,9 @@ func (p *Provider) Unsubscribe(sub *Subscription) {
 	p.idx.Unsubscribe(sub.Subscription)
 }
 
-func (p *Provider) GetPilots() []merged.Pilot {
+func (p *Provider) GetPilots() []*merged.Pilot {
 	p.dataLock.RLock()
-	pilots := make([]merged.Pilot, len(p.pilots))
+	pilots := make([]*merged.Pilot, len(p.pilots))
 	c := 0
 	for _, pilot := range p.pilots {
 		pilots[c] = pilot
@@ -326,7 +352,42 @@ func (p *Provider) GetPilotByCallsign(callsign string) (*merged.Pilot, error) {
 	p.dataLock.RLock()
 	defer p.dataLock.RUnlock()
 	if pilot, found := p.pilots[callsign]; found {
-		return &pilot, nil
+		return pilot, nil
 	}
 	return nil, ErrNotFound
+}
+
+func (p *Provider) GetAirports() []*merged.Airport {
+	p.dataLock.RLock()
+	airports := make([]*merged.Airport, len(p.airports))
+	c := 0
+	for _, arpt := range p.airports {
+		airports[c] = arpt
+		c++
+	}
+	p.dataLock.RUnlock()
+
+	sort.Slice(airports, func(i, j int) bool {
+		return airports[i].Meta.ICAO < airports[j].Meta.ICAO
+	})
+	return airports
+}
+
+func (p *Provider) GetAirportByICAO(icao string) (*merged.Airport, error) {
+	p.dataLock.RLock()
+	defer p.dataLock.RUnlock()
+	if arpt, found := p.airports[icao]; found {
+		return arpt, nil
+	}
+	return nil, ErrNotFound
+}
+
+func (p *Provider) SetAirportTrace(icao string) {
+	p.vatsim.SetAirportTrace(icao)
+	p.airportTrace.Add(icao)
+}
+
+func (p *Provider) ResetAirportTrace(icao string) {
+	p.vatsim.ResetAirportTrace(icao)
+	p.airportTrace.Delete(icao)
 }

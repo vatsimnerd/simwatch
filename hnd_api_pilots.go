@@ -1,7 +1,7 @@
 package simwatch
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -17,13 +17,7 @@ type ApiPilot struct {
 
 func (s *Server) handleApiPilots(w http.ResponseWriter, r *http.Request) {
 	pilots := s.provider.GetPilots()
-	data, err := json.Marshal(pilots)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(data)
+	sendPaginated(w, r, pilots)
 }
 
 func (s *Server) handleApiPilotsGet(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +33,7 @@ func (s *Server) handleApiPilotsGet(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		l.WithError(err).Error("error searching for pilot")
-		w.WriteHeader(404)
+		sendError(w, 404, "pilot not found")
 		return
 	}
 
@@ -47,16 +41,10 @@ func (s *Server) handleApiPilotsGet(w http.ResponseWriter, r *http.Request) {
 	tr, err := track.LoadTrack(pilot)
 	if err != nil {
 		l.WithError(err).Error("error loading track")
-		w.WriteHeader(500)
+		sendError(w, 500, fmt.Sprintf("error loading track: %v", err))
 		return
 	}
 
 	apiPilot.Track = tr.Points
-	data, err := json.Marshal(apiPilot)
-	if err != nil {
-		l.WithError(err).Error("error marshaling data")
-		w.WriteHeader(500)
-		return
-	}
-	w.Write(data)
+	sendJSON(w, apiPilot)
 }
