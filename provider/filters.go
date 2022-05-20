@@ -18,16 +18,18 @@ func airportFilter(includeUncontrolled bool) geoidx.Filter {
 		"func":                 "planeFilter",
 		"include_uncontrolled": includeUncontrolled,
 	})
-	log.Debug("setting arpt filter")
 
 	if !includeUncontrolled {
+		log.Debug("setting arpt filter")
 		return func(obj *geoidx.Object) bool {
-			if arpt, ok := obj.Value().(merged.Airport); ok {
+			if arpt, ok := obj.Value().(*merged.Airport); ok {
 				log.WithField("is_ctrl", arpt.IsControlled()).Debug("running arpt filter")
 				return arpt.IsControlled()
 			}
 			return true
 		}
+	} else {
+		log.Debug("removing arpt filter")
 	}
 	return nil
 }
@@ -63,7 +65,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -73,7 +75,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -88,7 +90,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -103,7 +105,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -123,7 +125,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -133,7 +135,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -148,7 +150,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -163,7 +165,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -183,7 +185,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -193,7 +195,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -208,7 +210,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -223,7 +225,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						if pilot.FlightPlan == nil {
 							return false
 						}
@@ -243,14 +245,14 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Callsign == value
 					}
 					return false
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Callsign != value
 					}
 					return false
@@ -262,7 +264,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return re.MatchString(pilot.Callsign)
 					}
 					return false
@@ -274,7 +276,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return !re.MatchString(pilot.Callsign)
 					}
 					return false
@@ -291,14 +293,14 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Name == value
 					}
 					return false
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Name != value
 					}
 					return false
@@ -310,7 +312,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return re.MatchString(pilot.Name)
 					}
 					return false
@@ -322,7 +324,7 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 				}
 
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return !re.MatchString(pilot.Name)
 					}
 					return false
@@ -339,42 +341,42 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Altitude == value
 					}
 					return false
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Altitude != value
 					}
 					return false
 				}, nil
 			case parser.Less:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Altitude < value
 					}
 					return false
 				}, nil
 			case parser.LessOrEqual:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Altitude <= value
 					}
 					return false
 				}, nil
 			case parser.Greater:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Altitude > value
 					}
 					return false
 				}, nil
 			case parser.GreaterOrEqual:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Altitude >= value
 					}
 					return false
@@ -391,42 +393,42 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Groundspeed == value
 					}
 					return false
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Groundspeed != value
 					}
 					return false
 				}, nil
 			case parser.Less:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Groundspeed < value
 					}
 					return false
 				}, nil
 			case parser.LessOrEqual:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Groundspeed <= value
 					}
 					return false
 				}, nil
 			case parser.Greater:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Groundspeed > value
 					}
 					return false
 				}, nil
 			case parser.GreaterOrEqual:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Groundspeed >= value
 					}
 					return false
@@ -443,42 +445,42 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Latitude == value
 					}
 					return false
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Latitude != value
 					}
 					return false
 				}, nil
 			case parser.Less:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Latitude < value
 					}
 					return false
 				}, nil
 			case parser.LessOrEqual:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Latitude <= value
 					}
 					return false
 				}, nil
 			case parser.Greater:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Latitude > value
 					}
 					return false
 				}, nil
 			case parser.GreaterOrEqual:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Latitude >= value
 					}
 					return false
@@ -495,42 +497,42 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Longitude == value
 					}
 					return false
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Longitude != value
 					}
 					return false
 				}, nil
 			case parser.Less:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Longitude < value
 					}
 					return false
 				}, nil
 			case parser.LessOrEqual:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Longitude <= value
 					}
 					return false
 				}, nil
 			case parser.Greater:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Longitude > value
 					}
 					return false
 				}, nil
 			case parser.GreaterOrEqual:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.Longitude >= value
 					}
 					return false
@@ -552,14 +554,14 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 			switch c.Operator.Type {
 			case parser.Equals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.FlightPlan != nil && pilot.FlightPlan.FlightRules == value
 					}
 					return false
 				}, nil
 			case parser.NotEquals:
 				return func(obj *geoidx.Object) bool {
-					if pilot, ok := obj.Value().(merged.Pilot); ok {
+					if pilot, ok := obj.Value().(*merged.Pilot); ok {
 						return pilot.FlightPlan != nil && pilot.FlightPlan.FlightRules != value
 					}
 					return false

@@ -101,11 +101,11 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 			obj := &ObjectUpdate{Obj: event.Obj.Value()}
 
 			switch event.Obj.Value().(type) {
-			case merged.Airport:
+			case *merged.Airport:
 				obj.OType = "arpt"
-			case merged.Radar:
+			case *merged.Radar:
 				obj.OType = "rdr"
-			case merged.Pilot:
+			case *merged.Pilot:
 				obj.OType = "plt"
 			}
 

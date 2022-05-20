@@ -33,5 +33,6 @@ func (s *Subscription) resetFilters() {
 	if s.pilotFilter != nil {
 		filters = append(filters, s.pilotFilter)
 	}
+	log.WithField("filter_count", len(filters)).Debug("reset filters")
 	s.SetFilters(filters...)
 }
