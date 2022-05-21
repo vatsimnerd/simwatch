@@ -15,6 +15,7 @@ type Server struct {
 	provider *provider.Provider
 	srv      *http.Server
 	addr     string
+	cors     bool
 }
 
 var (
@@ -25,6 +26,7 @@ func NewServer(cfg *config.Config) *Server {
 	return &Server{
 		provider: provider.New(cfg),
 		addr:     cfg.Web.Addr,
+		cors:     cfg.Web.CORS,
 	}
 }
 
@@ -35,7 +37,9 @@ func (s *Server) Start() error {
 
 	l.Info("setting up router")
 	router := mux.NewRouter()
-	router.Use(applyCors)
+	if s.cors {
+		router.Use(applyCors)
+	}
 	router.HandleFunc("/api/updates", s.handleApiUpdates).Methods("GET")
 	router.HandleFunc("/api/pilots", s.handleApiPilots).Methods("GET")
 	router.HandleFunc("/api/pilots/{id}", s.handleApiPilotsGet).Methods("GET")

@@ -16,6 +16,7 @@ type Config struct {
 	LogLevel string             `mapstructure:"log_level,omitempty"`
 	Web      struct {
 		Addr string `mapstructure:"addr,omitempty"`
+		CORS bool   `mapstructure:"cors,omitempty"`
 	} `mapstructure:"web,omitempty"`
 }
 
@@ -45,6 +46,9 @@ func Read(filename string) (*Config, error) {
 	viper.SetDefault("runways.poll.timeout", 3*time.Second)
 	viper.SetDefault("runways.boot.retries", 5)
 	viper.SetDefault("runways.boot.retry_cooldown", 3*time.Second)
+
+	viper.SetDefault("web.addr", "localhost:5000")
+	viper.SetDefault("web.cors", false)
 
 	err = viper.ReadInConfig()
 	if err != nil {
