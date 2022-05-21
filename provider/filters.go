@@ -580,5 +580,11 @@ func pilotFilter(query string) (geoidx.Filter, error) {
 	t2 := time.Now()
 	log.WithField("time", t2.Sub(t1).String()).Debug("expression compiled")
 
-	return expr.Evaluate, nil
+	return func(obj *geoidx.Object) bool {
+		if _, ok := obj.Value().(*merged.Pilot); !ok {
+			return true
+		}
+		return expr.Evaluate(obj)
+	}, nil
+
 }

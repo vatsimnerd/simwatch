@@ -11,11 +11,15 @@ type Subscription struct {
 }
 
 func (s *Subscription) SetPilotFilter(query string) error {
-	flt, err := pilotFilter(query)
-	if err != nil {
-		return err
+	if query == "" {
+		s.pilotFilter = nil
+	} else {
+		flt, err := pilotFilter(query)
+		if err != nil {
+			return err
+		}
+		s.pilotFilter = flt
 	}
-	s.pilotFilter = flt
 	s.resetFilters()
 	return nil
 }

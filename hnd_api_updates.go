@@ -61,7 +61,7 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 		case RequestTypeAirportsFilter:
 			err = json.Unmarshal(req.Payload, &req.AirportFilter)
 		case RequestTypePilotsFilter:
-			err = json.Unmarshal(req.Payload, &req.AirportFilter)
+			err = json.Unmarshal(req.Payload, &req.PilotFilter)
 		case RequestTypeSubscribeID:
 			fallthrough
 		case RequestTypeUnsubscribeID:
