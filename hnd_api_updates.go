@@ -41,7 +41,7 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		_, buf, err := sock.ReadMessage()
-		l.WithField("buf", string(buf)).WithError(err).Info("message from client")
+		l.WithField("buf", string(buf)).WithError(err).Trace("message from client")
 		if err != nil {
 			l.WithError(err).Error("error reading message")
 			break

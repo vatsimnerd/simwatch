@@ -35,6 +35,7 @@ func (s *Server) Start() error {
 
 	l.Info("setting up router")
 	router := mux.NewRouter()
+	router.Use(applyCors)
 	router.HandleFunc("/api/updates", s.handleApiUpdates).Methods("GET")
 	router.HandleFunc("/api/pilots", s.handleApiPilots).Methods("GET")
 	router.HandleFunc("/api/pilots/{id}", s.handleApiPilotsGet).Methods("GET")
