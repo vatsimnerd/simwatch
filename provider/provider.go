@@ -256,6 +256,7 @@ func (p *Provider) setRadar(obj interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T, expected to be Radar", obj)
 	}
+	l = l.WithField("callsign", radar.Controller.Callsign)
 
 	minLng := 1000.0
 	minLat := 1000.0
@@ -271,21 +272,22 @@ func (p *Provider) setRadar(obj interface{}) error {
 		if fir.Boundaries.Max.Lat > maxLat {
 			maxLat = fir.Boundaries.Max.Lat
 		}
-		if fir.Boundaries.Max.Lng < maxLng {
+		if fir.Boundaries.Max.Lng > maxLng {
 			maxLng = fir.Boundaries.Max.Lng
 		}
 	}
 	rect := geoidx.MakeRect(minLng, minLat, maxLng, maxLat)
+	l = l.WithField("rect", rect)
 
 	iobj := geoidx.NewObject(
 		radar.Controller.Callsign,
 		rect,
 		&radar,
 	)
-	l.Trace("upserting radar geo object")
+	l.Info("upserting radar geo object")
 	p.idx.Upsert(iobj)
 
-	l.Trace("inserting radar to index")
+	l.Info("inserting radar to index")
 	p.dataLock.Lock()
 	p.radars[radar.Controller.Callsign] = &radar
 	p.dataLock.Unlock()
