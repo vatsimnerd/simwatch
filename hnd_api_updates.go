@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	maxObjectsPerUpdate = 300
+	maxObjectsPerUpdate = 1500
 )
 
 var (
@@ -97,21 +97,6 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *Message) {
-	omap := map[string]map[string]*ObjectUpdate{
-		"set": {
-			"arpt": makeObjectUpdate("set", "arpt", maxObjectsPerUpdate),
-			"rdr":  makeObjectUpdate("set", "rdr", maxObjectsPerUpdate),
-			"plt":  makeObjectUpdate("set", "plt", maxObjectsPerUpdate),
-		},
-		"del": {
-			"arpt": makeObjectUpdate("del", "arpt", maxObjectsPerUpdate),
-			"rdr":  makeObjectUpdate("del", "rdr", maxObjectsPerUpdate),
-			"plt":  makeObjectUpdate("del", "plt", maxObjectsPerUpdate),
-		},
-	}
-	eTypes := []string{"set", "del"}
-	oTypes := []string{"arpt", "rdr", "plt"}
-
 	var oType string
 	var eType string
 	var acc *ObjectUpdate
@@ -126,6 +111,13 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 				return
 			}
 
+			switch event.Type {
+			case geoidx.EventTypeSet:
+				eType = "set"
+			case geoidx.EventTypeDelete:
+				eType = "del"
+			}
+
 			switch event.Obj.Value().(type) {
 			case *merged.Airport:
 				oType = "arpt"
@@ -135,14 +127,17 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 				oType = "plt"
 			}
 
-			switch event.Type {
-			case geoidx.EventTypeSet:
-				eType = "set"
-			case geoidx.EventTypeDelete:
-				eType = "del"
+			// if acc is not created yet, create a new one
+			if acc == nil {
+				acc = makeObjectUpdate(eType, oType, maxObjectsPerUpdate)
 			}
 
-			acc = omap[eType][oType]
+			// if acc contains updates of different type, flush it
+			// and create a new one
+			if acc.EType != eType && acc.OType != oType {
+				sock.WriteJSON(acc.message())
+				acc = makeObjectUpdate(eType, oType, maxObjectsPerUpdate)
+			}
 
 			if acc.add(event.Obj.Value()) {
 				// if acc is full, send its contents and reset
@@ -152,15 +147,10 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 
 		case <-flush.C:
 			// periodically flush update buffers
-			for _, eType = range eTypes {
-				for _, oType = range oTypes {
-					acc = omap[eType][oType]
-					if acc.hasData() {
-						// if acc has data, send its contents and reset
-						sock.WriteJSON(acc.message())
-						acc.reset()
-					}
-				}
+			if acc.hasData() {
+				// if acc has data, send its contents and reset
+				sock.WriteJSON(acc.message())
+				acc.reset()
 			}
 
 		case msg := <-mc:
