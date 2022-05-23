@@ -38,13 +38,42 @@ type (
 	}
 
 	ObjectUpdate struct {
-		EType string      `json:"e_type"`
-		OType string      `json:"o_type"`
-		Obj   interface{} `json:"obj"`
+		EType     string        `json:"e_type"`
+		OType     string        `json:"o_type"`
+		Objects   []interface{} `json:"objects"`
+		maxBucket int
 	}
 
 	RequestBounds = geoidx.Rect
 )
+
+func (o *ObjectUpdate) reset() {
+	o.Objects = make([]interface{}, 0, o.maxBucket)
+}
+
+func (o *ObjectUpdate) hasData() bool {
+	return len(o.Objects) > 0
+}
+
+func (o *ObjectUpdate) message() *Message {
+	return &Message{
+		Type:    MessageTypeUpdate,
+		Payload: o,
+	}
+}
+
+func (o *ObjectUpdate) add(obj interface{}) bool {
+	ol := o.Objects
+	ol = append(ol, obj)
+	o.Objects = ol
+	return len(ol) == o.maxBucket
+}
+
+func makeObjectUpdate(etype, otype string, maxBucket int) *ObjectUpdate {
+	o := &ObjectUpdate{EType: etype, OType: otype, maxBucket: maxBucket}
+	o.reset()
+	return o
+}
 
 const (
 	RequestTypeBounds         RequestType = "bounds"
