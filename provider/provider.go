@@ -104,7 +104,7 @@ func (p *Provider) loop() {
 			}
 
 			if err != nil {
-				l.WithField("upd", upd).Error("error updating object")
+				l.WithField("upd", upd).Error("error deleting object")
 				err = nil
 			}
 
@@ -162,6 +162,8 @@ func (p *Provider) deleteAirport(obj interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T, expected to be Airport", obj)
 	}
+
+	l.WithField("ICAO", arpt.Meta.ICAO).Warn("DELETE AIRPORT")
 
 	trace := p.airportTrace.Has(arpt.Meta.ICAO)
 
@@ -230,6 +232,8 @@ func (p *Provider) deletePilot(obj interface{}) error {
 		return fmt.Errorf("unexpected type %T, expected to be Pilot", obj)
 	}
 
+	l.WithField("CALLSIGN", pilot.Callsign).Warn("DELETE PILOT")
+
 	iobj := geoidx.NewObject(
 		pilot.Callsign,
 		squareCentered(pilot.Latitude, pilot.Longitude, planeSizeNM),
@@ -284,10 +288,10 @@ func (p *Provider) setRadar(obj interface{}) error {
 		rect,
 		&radar,
 	)
-	l.Info("upserting radar geo object")
+	l.Trace("upserting radar geo object")
 	p.idx.Upsert(iobj)
 
-	l.Info("inserting radar to index")
+	l.Trace("inserting radar to index")
 	p.dataLock.Lock()
 	p.radars[radar.Controller.Callsign] = &radar
 	p.dataLock.Unlock()
@@ -305,6 +309,9 @@ func (p *Provider) deleteRadar(obj interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T, expected to be Radar", obj)
 	}
+
+	l.WithField("CALLSIGN", radar.Controller.Callsign).Warn("DELETE RADAR")
+
 	rect := geoidx.MakeRect(0, 0, 0, 0)
 	iobj := geoidx.NewObject(
 		radar.Controller.Callsign,
