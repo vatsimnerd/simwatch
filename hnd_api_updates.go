@@ -3,11 +3,16 @@ package simwatch
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/vatsimnerd/geoidx"
 	"github.com/vatsimnerd/simwatch-providers/merged"
 	"github.com/vatsimnerd/simwatch/provider"
+)
+
+const (
+	maxObjectsPerUpdate = 300
 )
 
 var (
@@ -92,35 +97,72 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *Message) {
+	omap := map[string]map[string]*ObjectUpdate{
+		"set": {
+			"arpt": makeObjectUpdate("set", "arpt", maxObjectsPerUpdate),
+			"rdr":  makeObjectUpdate("set", "rdr", maxObjectsPerUpdate),
+			"plt":  makeObjectUpdate("set", "plt", maxObjectsPerUpdate),
+		},
+		"del": {
+			"arpt": makeObjectUpdate("del", "arpt", maxObjectsPerUpdate),
+			"rdr":  makeObjectUpdate("del", "rdr", maxObjectsPerUpdate),
+			"plt":  makeObjectUpdate("del", "plt", maxObjectsPerUpdate),
+		},
+	}
+	eTypes := []string{"set", "del"}
+	oTypes := []string{"arpt", "rdr", "plt"}
+
+	var oType string
+	var eType string
+	var acc *ObjectUpdate
+
+	flush := time.NewTicker(50 * time.Millisecond)
+	defer flush.Stop()
+
 	for {
 		select {
 		case event, ok := <-sub.Events():
 			if !ok {
 				return
 			}
-			obj := &ObjectUpdate{Obj: event.Obj.Value()}
 
 			switch event.Obj.Value().(type) {
 			case *merged.Airport:
-				obj.OType = "arpt"
+				oType = "arpt"
 			case *merged.Radar:
-				obj.OType = "rdr"
+				oType = "rdr"
 			case *merged.Pilot:
-				obj.OType = "plt"
+				oType = "plt"
 			}
 
 			switch event.Type {
 			case geoidx.EventTypeSet:
-				obj.EType = "set"
+				eType = "set"
 			case geoidx.EventTypeDelete:
-				obj.EType = "del"
+				eType = "del"
 			}
 
-			msg := &Message{
-				Type:    MessageTypeUpdate,
-				Payload: obj,
+			acc = omap[eType][oType]
+
+			if acc.add(event.Obj.Value()) {
+				// if acc is full, send its contents and reset
+				sock.WriteJSON(acc.message())
+				acc.reset()
 			}
-			sock.WriteJSON(msg)
+
+		case <-flush.C:
+			// periodically flush update buffers
+			for _, eType = range eTypes {
+				for _, oType = range oTypes {
+					acc = omap[eType][oType]
+					if acc.hasData() {
+						// if acc has data, send its contents and reset
+						sock.WriteJSON(acc.message())
+						acc.reset()
+					}
+				}
+			}
+
 		case msg := <-mc:
 			sock.WriteJSON(msg)
 		}
