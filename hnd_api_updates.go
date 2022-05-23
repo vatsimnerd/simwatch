@@ -134,8 +134,10 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 
 			// if acc contains updates of different type, flush it
 			// and create a new one
-			if acc.EType != eType && acc.OType != oType {
-				sock.WriteJSON(acc.message())
+			if acc.EType != eType || acc.OType != oType {
+				if acc.hasData() {
+					sock.WriteJSON(acc.message())
+				}
 				acc = makeObjectUpdate(eType, oType, maxObjectsPerUpdate)
 			}
 
@@ -147,7 +149,7 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 
 		case <-flush.C:
 			// periodically flush update buffers
-			if acc.hasData() {
+			if acc != nil && acc.hasData() {
 				// if acc has data, send its contents and reset
 				sock.WriteJSON(acc.message())
 				acc.reset()
