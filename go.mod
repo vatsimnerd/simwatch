@@ -6,10 +6,10 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/viper v1.11.0
+	github.com/spf13/viper v1.12.0
 	github.com/vatsimnerd/geoidx v1.2.4
 	github.com/vatsimnerd/lee v1.0.1
-	github.com/vatsimnerd/simwatch-providers v0.2.9
+	github.com/vatsimnerd/simwatch-providers v0.3.0
 	github.com/vatsimnerd/util v1.0.2
 )
 
