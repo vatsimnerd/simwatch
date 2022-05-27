@@ -9,7 +9,7 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/vatsimnerd/geoidx v1.2.4
 	github.com/vatsimnerd/lee v1.0.1
-	github.com/vatsimnerd/simwatch-providers v0.3.0
+	github.com/vatsimnerd/simwatch-providers v0.3.1
 	github.com/vatsimnerd/util v1.0.2
 )
 
@@ -33,5 +33,5 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

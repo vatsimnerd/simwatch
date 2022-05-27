@@ -163,8 +163,6 @@ func (p *Provider) deleteAirport(obj interface{}) error {
 		return fmt.Errorf("unexpected type %T, expected to be Airport", obj)
 	}
 
-	l.WithField("ICAO", arpt.Meta.ICAO).Warn("DELETE AIRPORT")
-
 	trace := p.airportTrace.Has(arpt.Meta.ICAO)
 
 	iobj := geoidx.NewObject(
@@ -231,8 +229,6 @@ func (p *Provider) deletePilot(obj interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T, expected to be Pilot", obj)
 	}
-
-	l.WithField("CALLSIGN", pilot.Callsign).Warn("DELETE PILOT")
 
 	iobj := geoidx.NewObject(
 		pilot.Callsign,
@@ -309,8 +305,6 @@ func (p *Provider) deleteRadar(obj interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T, expected to be Radar", obj)
 	}
-
-	l.WithField("CALLSIGN", radar.Controller.Callsign).Warn("DELETE RADAR")
 
 	rect := geoidx.MakeRect(0, 0, 0, 0)
 	iobj := geoidx.NewObject(
