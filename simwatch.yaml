@@ -26,3 +26,9 @@ runways:
   boot:
     retries: 5
     retry_cooldown: 3s
+track:
+  engine: redis
+  options:
+    addr: localhost:6379
+    password: ""
+    db: 0

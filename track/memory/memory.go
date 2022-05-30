@@ -1,12 +1,13 @@
 package memory
 
 import (
-	"fmt"
+	"context"
 	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/vatsimnerd/simwatch-providers/merged"
+	"github.com/vatsimnerd/simwatch/config"
 	"github.com/vatsimnerd/simwatch/track"
 )
 
@@ -20,44 +21,35 @@ type MemoryReadWriter struct {
 var (
 	ReadWriter = &MemoryReadWriter{tracks: make(map[string]*track.Track)}
 	log        = logrus.WithField("module", "track.memory")
-
-	ErrNotFound      = fmt.Errorf("track not found")
-	ErrNotConfigured = fmt.Errorf("MemoryReadWriter not configured")
-	ErrConfigInvalid = fmt.Errorf("invalid configuration for MemoryReadWriter, must be *memory.Config")
 )
 
-func init() {
-	log.Info("setup memory track writer")
-	track.RegisterTrackReadWriter(ReadWriter)
-}
-
-func (m *MemoryReadWriter) LoadTrackByID(id string) (*track.Track, error) {
+func (m *MemoryReadWriter) LoadTrackByID(ctx context.Context, id string) (*track.Track, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
 	if t, found := m.tracks[id]; found {
 		return t, nil
 	}
-	return nil, ErrNotFound
+	return nil, track.ErrNotFound
 }
 
-func (m *MemoryReadWriter) LoadTrack(p *merged.Pilot) (*track.Track, error) {
+func (m *MemoryReadWriter) LoadTrack(ctx context.Context, p *merged.Pilot) (*track.Track, error) {
 	if !m.configured {
-		return nil, ErrNotConfigured
+		return nil, track.ErrNotConfigured
 	}
 
 	trackID, _ := track.ExtractTrackData(p)
-	return m.LoadTrackByID(trackID)
+	return m.LoadTrackByID(ctx, trackID)
 }
 
-func (m *MemoryReadWriter) WriteTrack(p *merged.Pilot) error {
+func (m *MemoryReadWriter) WriteTrack(ctx context.Context, p *merged.Pilot) error {
 	l := log.WithFields(logrus.Fields{
 		"func":     "WriteTrack",
 		"callsign": p.Callsign,
 	})
 
 	if !m.configured {
-		return ErrNotConfigured
+		return track.ErrNotConfigured
 	}
 
 	trackID, point := track.ExtractTrackData(p)
@@ -88,7 +80,7 @@ func (m *MemoryReadWriter) WriteTrack(p *merged.Pilot) error {
 	return nil
 }
 
-func (m *MemoryReadWriter) ListIDs() []string {
+func (m *MemoryReadWriter) ListIDs(ctx context.Context) []string {
 	ids := make([]string, len(m.tracks))
 	i := 0
 	for key := range m.tracks {
@@ -98,14 +90,11 @@ func (m *MemoryReadWriter) ListIDs() []string {
 	return ids
 }
 
-func (m *MemoryReadWriter) Configure(cfg interface{}) error {
-	if config, ok := cfg.(*Config); ok {
-		m.configured = true
-		m.purgePeriod = config.PurgePeriod
-		go m.gc()
-		return nil
-	}
-	return ErrConfigInvalid
+func (m *MemoryReadWriter) Configure(cfg *config.TrackConfigOptions) error {
+	m.configured = true
+	m.purgePeriod = cfg.PurgePeriod
+	go m.gc()
+	return nil
 }
 
 func (m *MemoryReadWriter) gc() {

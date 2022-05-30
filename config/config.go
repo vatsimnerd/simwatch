@@ -9,15 +9,30 @@ import (
 	vatspydata "github.com/vatsimnerd/simwatch-providers/vatspy-data"
 )
 
+type WebConfig struct {
+	Addr string `mapstructure:"addr,omitempty"`
+	CORS bool   `mapstructure:"cors,omitempty"`
+}
+
+type TrackConfigOptions struct {
+	Addr        string        `mapstructure:"addr,omitempty"`
+	Password    string        `mapstructure:"password,omitempty"`
+	DB          int           `mapstructure:"db,omitempty"`
+	PurgePeriod time.Duration `mapstructure:"purge_period,omitempty"`
+}
+
+type TrackConfig struct {
+	Engine  string             `mapstructure:"engine,omitempty"`
+	Options TrackConfigOptions `mapstructure:"options,omitempty"`
+}
+
 type Config struct {
 	API      vatsimapi.Config   `mapstructure:"api,omitempty"`
 	Data     vatspydata.Config  `mapstructure:"data,omitempty"`
 	Runways  ourairports.Config `mapstructure:"runways,omitempty"`
 	LogLevel string             `mapstructure:"log_level,omitempty"`
-	Web      struct {
-		Addr string `mapstructure:"addr,omitempty"`
-		CORS bool   `mapstructure:"cors,omitempty"`
-	} `mapstructure:"web,omitempty"`
+	Web      WebConfig          `mapstructure:"web,omitempty"`
+	Track    TrackConfig        `mapstructure:"track,omitempty"`
 }
 
 func Read(filename string) (*Config, error) {
@@ -49,6 +64,12 @@ func Read(filename string) (*Config, error) {
 
 	viper.SetDefault("web.addr", "localhost:5000")
 	viper.SetDefault("web.cors", false)
+
+	viper.SetDefault("track.engine", "memory")
+	viper.SetDefault("track.options.purge_period", "24h")
+	viper.SetDefault("track.options.addr", "localhost:6379")
+	viper.SetDefault("track.options.password", "")
+	viper.SetDefault("track.options.db", 0)
 
 	err = viper.ReadInConfig()
 	if err != nil {

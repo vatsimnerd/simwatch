@@ -38,7 +38,7 @@ func (s *Server) handleApiPilotsGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	apiPilot := ApiPilot{Pilot: pilot}
-	tr, err := track.LoadTrack(pilot)
+	tr, err := track.LoadTrack(r.Context(), pilot)
 	if err != nil {
 		l.WithError(err).Error("error loading track")
 		sendError(w, 500, fmt.Sprintf("error loading track: %v", err))
