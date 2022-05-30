@@ -104,6 +104,7 @@ func (r *RedisReadWriter) Configure(cfg *config.TrackConfigOptions) error {
 	r.cfg = cfg
 	r.configured = true
 	r.setupClient()
+	go r.gc()
 	return nil
 }
 
@@ -260,4 +261,85 @@ func (r *RedisReadWriter) writeTrackPoint(ctx context.Context, trackID string, p
 	// push point index
 	l.Trace("pushing point index")
 	return r.cli.RPush(ctx, trackIdxKey, ts).Err()
+}
+
+func (r *RedisReadWriter) deleteTrack(ctx context.Context, trackID string) error {
+	l := log.WithFields(logrus.Fields{
+		"func": "deleteTrack",
+		"tid":  trackID,
+	})
+
+	if !r.trackExists(ctx, trackID) {
+		return track.ErrNotFound
+	}
+
+	idxkey := pointsIndexKey(trackID)
+
+	keys, err := r.cli.LRange(ctx, idxkey, 0, -1).Result()
+	if err != nil {
+		l.WithError(err).Error("error getting track point index")
+		return err
+	}
+
+	err = r.cli.Del(ctx, keys...).Err()
+	if err != nil {
+		l.WithError(err).Error("error deleting points")
+		return err
+	}
+
+	err = r.cli.Del(ctx, idxkey).Err()
+	if err != nil {
+		l.WithError(err).Error("error deleting point index")
+		return err
+	}
+
+	ck := trackCreatedKey(trackID)
+	err = r.cli.Del(ctx, ck).Err()
+	if err != nil {
+		l.WithError(err).Error("error deleting track created ts")
+		return err
+	}
+
+	err = r.cli.SRem(ctx, keyTrackIDs, trackID).Err()
+	if err != nil {
+		l.WithError(err).Error("error deleting track id from index")
+	}
+
+	return err
+}
+
+func (r *RedisReadWriter) gc() {
+	l := log.WithField("func", "gc")
+	t := time.NewTicker(r.cfg.PurgePeriod)
+	defer t.Stop()
+
+	ctx := context.Background()
+
+	for range t.C {
+		now := time.Now()
+		l.Debug("running tracks garbage collector")
+
+		trackIDs, err := r.cli.SMembers(ctx, keyTrackIDs).Result()
+		if err != nil {
+			l.WithError(err).Error("error reading track ids")
+			continue
+		}
+
+		for _, trackID := range trackIDs {
+			ck := trackCreatedKey(trackID)
+			createdUx, err := r.getInt64(ctx, ck)
+			if err != nil {
+				l.WithField("track_id", trackID).WithError(err).Error("error reading track created ts")
+				continue
+			}
+			ctime := time.Unix(createdUx, 0)
+			if now.Sub(ctime) > r.cfg.PurgePeriod {
+				err = r.deleteTrack(ctx, trackID)
+				if err != nil {
+					l.WithField("track_id", trackID).WithError(err).Error("error deleting track")
+					continue
+				}
+			}
+		}
+	}
 }
