@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"sync"
@@ -12,6 +13,7 @@ import (
 	"github.com/vatsimnerd/simwatch/config"
 	"github.com/vatsimnerd/simwatch/track"
 	"github.com/vatsimnerd/simwatch/track/memory"
+	"github.com/vatsimnerd/simwatch/track/redistr"
 	"github.com/vatsimnerd/util/pubsub"
 	"github.com/vatsimnerd/util/set"
 )
@@ -26,6 +28,7 @@ type Provider struct {
 	vatsim *merged.Provider
 	stop   chan bool
 	idx    *geoidx.Index
+	tcfg   config.TrackConfig
 
 	airports map[string]*merged.Airport
 	pilots   map[string]*merged.Pilot
@@ -41,6 +44,7 @@ func New(cfg *config.Config) *Provider {
 		vatsim: merged.New(&cfg.API, &cfg.Data, &cfg.Runways),
 		stop:   make(chan bool),
 		idx:    geoidx.NewIndex(),
+		tcfg:   cfg.Track,
 
 		airports: make(map[string]*merged.Airport),
 		pilots:   make(map[string]*merged.Pilot),
@@ -51,7 +55,18 @@ func New(cfg *config.Config) *Provider {
 }
 
 func (p *Provider) Start() error {
-	track.Configure(&memory.Config{PurgePeriod: 24 * time.Hour})
+	switch p.tcfg.Engine {
+	case "memory":
+		log.Info("registering memory track engine")
+		track.RegisterTrackReadWriter(memory.ReadWriter)
+	case "redis":
+		log.Info("registering redis track engine")
+		track.RegisterTrackReadWriter(redistr.ReadWriter)
+	default:
+		return fmt.Errorf("invalid track engine '%s'", p.tcfg.Engine)
+	}
+	track.Configure(&p.tcfg.Options)
+
 	err := p.vatsim.Start()
 	if err != nil {
 		return err
@@ -104,7 +119,7 @@ func (p *Provider) loop() {
 			}
 
 			if err != nil {
-				l.WithField("upd", upd).Error("error deleting object")
+				l.WithField("upd", upd).WithError(err).Error("error deleting object")
 				err = nil
 			}
 
@@ -215,7 +230,9 @@ func (p *Provider) setPilot(obj interface{}) error {
 
 	l.Trace("writing pilot's track")
 
-	err := track.WriteTrack(&pilot)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	err := track.WriteTrack(ctx, &pilot)
 	return err
 }
 

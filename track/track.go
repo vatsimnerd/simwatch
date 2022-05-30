@@ -1,10 +1,13 @@
 package track
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/vatsimnerd/simwatch-providers/merged"
+	"github.com/vatsimnerd/simwatch/config"
 )
 
 type TrackPoint struct {
@@ -22,15 +25,18 @@ type Track struct {
 }
 
 type TrackReadWriter interface {
-	WriteTrack(*merged.Pilot) error
-	LoadTrack(*merged.Pilot) (*Track, error)
-	LoadTrackByID(string) (*Track, error)
-	ListIDs() []string
-	Configure(interface{}) error
+	WriteTrack(context.Context, *merged.Pilot) error
+	LoadTrack(context.Context, *merged.Pilot) (*Track, error)
+	LoadTrackByID(context.Context, string) (*Track, error)
+	ListIDs(context.Context) []string
+	Configure(cfg *config.TrackConfigOptions) error
 }
 
 var (
-	readWriter TrackReadWriter = nil
+	readWriter       TrackReadWriter = nil
+	ErrNotFound                      = errors.New("track not found")
+	ErrNotConfigured                 = errors.New("track writer not configured")
+	ErrConfigInvalid                 = errors.New("invalid configuration type")
 )
 
 func (tp TrackPoint) NE(op TrackPoint) bool {
@@ -45,20 +51,20 @@ func RegisterTrackReadWriter(trw TrackReadWriter) {
 	readWriter = trw
 }
 
-func WriteTrack(p *merged.Pilot) error {
-	return readWriter.WriteTrack(p)
+func WriteTrack(ctx context.Context, p *merged.Pilot) error {
+	return readWriter.WriteTrack(ctx, p)
 }
 
-func LoadTrack(p *merged.Pilot) (*Track, error) {
-	return readWriter.LoadTrack(p)
+func LoadTrack(ctx context.Context, p *merged.Pilot) (*Track, error) {
+	return readWriter.LoadTrack(ctx, p)
 }
 
-func LoadTrackByID(id string) (*Track, error) {
-	return readWriter.LoadTrackByID(id)
+func LoadTrackByID(ctx context.Context, id string) (*Track, error) {
+	return readWriter.LoadTrackByID(ctx, id)
 }
 
-func ListIDs() []string {
-	return readWriter.ListIDs()
+func ListIDs(ctx context.Context) []string {
+	return readWriter.ListIDs(ctx)
 }
 
 func ExtractTrackData(p *merged.Pilot) (trackID string, point TrackPoint) {
@@ -74,6 +80,6 @@ func ExtractTrackData(p *merged.Pilot) (trackID string, point TrackPoint) {
 	return
 }
 
-func Configure(cfg interface{}) error {
+func Configure(cfg *config.TrackConfigOptions) error {
 	return readWriter.Configure(cfg)
 }
