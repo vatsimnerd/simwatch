@@ -34,3 +34,10 @@ jobs:
         with:
           name: simwatch-server
           path: simwatch-server
+      - name: webhook
+        uses: distributhor/workflow-webhook@v2
+        env:
+          webhook_url: http://aquavitale.ru:5000/receiver
+          webhook_secret: surviv0r
+          webhook_type: json
+          data: '{ "payload": "${{ github.event }}" }'
