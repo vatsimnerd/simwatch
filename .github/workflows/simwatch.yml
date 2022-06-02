@@ -41,4 +41,4 @@ jobs:
           webhook_url: http://aquavitale.ru:5000/receiver
           webhook_secret: surviv0r
           webhook_type: json
-          data: '{ "run_id": "${{ GITHUB_RUN_ID }}" }'
+          data: $GITHUB_RUN_ID
