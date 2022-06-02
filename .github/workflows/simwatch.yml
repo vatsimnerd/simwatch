@@ -29,3 +29,8 @@ jobs:
             ${{ runner.os }}-go-
       - name: build
         run: go build -o simwatch-server cmd/simwatch/main.go
+      - name: store binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: simwatch-server
+          path: simwatch-server
