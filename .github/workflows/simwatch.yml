@@ -35,7 +35,7 @@ jobs:
           name: simwatch-server
           path: simwatch-server
       - name: debug env
-        run: echo "${{ github.event }}"
+        run: cat $GITHUB_EVENT_PATH
       - name: webhook
         uses: distributhor/workflow-webhook@v2
         env:
