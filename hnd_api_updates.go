@@ -33,6 +33,7 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 
 	sub := s.provider.Subscribe(1024)
 	defer s.provider.Unsubscribe(sub)
+	sub.SetAirportFilter(false)
 
 	mc := make(chan *Message, 1024)
 	// every client request may result in a huge amount of
