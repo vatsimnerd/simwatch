@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - master
-      - gh-actions
-      - other
   pull_request:
     branches:
       - master
