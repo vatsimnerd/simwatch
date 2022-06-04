@@ -36,7 +36,7 @@ jobs:
       - name: webhook
         uses: distributhor/workflow-webhook@v2
         env:
-          webhook_url: "{{ secrets.FETCHER_URL }}"
-          webhook_secret: "{{ secrets.FETCHER_SECRET }}"
+          webhook_url: "${{ secrets.FETCHER_URL }}"
+          webhook_secret: "${{ secrets.FETCHER_SECRET }}"
           webhook_type: json
           data: '{"run_id": ${{ github.run_id }}}'
