@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 	"github.com/vatsimnerd/geoidx"
 	"github.com/vatsimnerd/simwatch-providers/merged"
 	"github.com/vatsimnerd/simwatch/provider"
@@ -13,6 +14,7 @@ import (
 
 const (
 	maxObjectsPerUpdate = 1500
+	flushInterval       = 1 * time.Second
 )
 
 var (
@@ -98,11 +100,16 @@ func (s *Server) handleApiUpdates(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *Message) {
+	l := log.WithFields(logrus.Fields{
+		"func":   "sendMessages",
+		"sub_id": sub.ID(),
+	})
+
 	var oType string
 	var eType string
 	var acc *ObjectUpdate
 
-	flush := time.NewTicker(50 * time.Millisecond)
+	flush := time.NewTicker(flushInterval)
 	defer flush.Stop()
 
 	for {
@@ -130,19 +137,31 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 
 			// if acc is not created yet, create a new one
 			if acc == nil {
+				l.WithFields(logrus.Fields{
+					"e_type": eType,
+					"o_type": oType,
+				}).Debug("creating new update accumulator")
 				acc = makeObjectUpdate(eType, oType, maxObjectsPerUpdate)
 			}
 
 			// if acc contains updates of different type, flush it
 			// and create a new one
 			if acc.EType != eType || acc.OType != oType {
+				l.WithFields(logrus.Fields{
+					"e_type": eType,
+					"o_type": oType,
+					"acc":    acc,
+				}).Debug("new eType or oType")
+
 				if acc.hasData() {
+					l.WithField("obj_count", len(acc.Objects)).Debug("flushing old acc")
 					sock.WriteJSON(acc.message())
 				}
 				acc = makeObjectUpdate(eType, oType, maxObjectsPerUpdate)
 			}
 
 			if acc.add(event.Obj.Value()) {
+				l.WithField("obj_count", len(acc.Objects)).Debug("acc is full, flushing")
 				// if acc is full, send its contents and reset
 				sock.WriteJSON(acc.message())
 				acc.reset()
@@ -151,6 +170,7 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 		case <-flush.C:
 			// periodically flush update buffers
 			if acc != nil && acc.hasData() {
+				l.WithField("obj_count", len(acc.Objects)).Debug("periodical account flush")
 				// if acc has data, send its contents and reset
 				sock.WriteJSON(acc.message())
 				acc.reset()

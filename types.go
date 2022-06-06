@@ -62,11 +62,10 @@ func (o *ObjectUpdate) message() *Message {
 	}
 }
 
-func (o *ObjectUpdate) add(obj interface{}) bool {
-	ol := o.Objects
-	ol = append(ol, obj)
-	o.Objects = ol
-	return len(ol) == o.maxBucket
+func (o *ObjectUpdate) add(obj interface{}) (flush bool) {
+	o.Objects = append(o.Objects, obj)
+	flush = len(o.Objects) >= o.maxBucket
+	return
 }
 
 func makeObjectUpdate(etype, otype string, maxBucket int) *ObjectUpdate {
