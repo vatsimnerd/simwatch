@@ -148,9 +148,10 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 			// and create a new one
 			if acc.EType != eType || acc.OType != oType {
 				l.WithFields(logrus.Fields{
-					"e_type": eType,
-					"o_type": oType,
-					"acc":    acc,
+					"e_type":     eType,
+					"o_type":     oType,
+					"acc_e_type": acc.EType,
+					"acc_o_type": acc.OType,
 				}).Debug("new eType or oType")
 
 				if acc.hasData() {
