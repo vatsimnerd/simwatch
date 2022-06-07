@@ -7,6 +7,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 	"github.com/vatsimnerd/simwatch-providers/merged"
 	"github.com/vatsimnerd/simwatch/config"
 	"github.com/vatsimnerd/simwatch/track"
@@ -15,12 +16,13 @@ import (
 type SQLiteReadWriter struct {
 	cfg        *config.TrackConfigOptions
 	db         *sql.DB
+	stop       chan struct{}
 	configured bool
 }
 
 var (
-	ReadWriter = &SQLiteReadWriter{}
-	// log        = logrus.WithField("module", "track.memory")
+	ReadWriter = &SQLiteReadWriter{stop: make(chan struct{})}
+	log        = logrus.WithField("module", "track.memory")
 )
 
 func (r *SQLiteReadWriter) Configure(cfg *config.TrackConfigOptions) error {
@@ -35,7 +37,32 @@ func (r *SQLiteReadWriter) Configure(cfg *config.TrackConfigOptions) error {
 	return nil
 }
 
-func (r *SQLiteReadWriter) gc() {}
+func (r *SQLiteReadWriter) gc() {
+	t := time.NewTicker(r.cfg.PurgePeriod)
+	defer t.Stop()
+
+	for {
+		select {
+		case <-t.C:
+			log.Info("running tracks garbage collect")
+			expiredAt := time.Now().Add(-r.cfg.PurgePeriod)
+			res, err := r.db.Exec("DELETE FROM tracks WHERE created_at < ?", expiredAt)
+			if err != nil {
+				log.WithError(err).Error("error garbage-collecting tracks")
+			} else {
+				count, err := res.RowsAffected()
+				if err != nil {
+					log.WithError(err).Error("error counting deleted tracks")
+				} else {
+					log.WithField("count", count).Error("tracks garbage-collected")
+				}
+			}
+			res.RowsAffected()
+		case <-r.stop:
+			return
+		}
+	}
+}
 
 func (r *SQLiteReadWriter) setupClient() error {
 	db, err := sql.Open("sqlite3", r.cfg.Path)
@@ -142,6 +169,7 @@ func (r *SQLiteReadWriter) WriteTrack(ctx context.Context, p *merged.Pilot) erro
 }
 
 func (r *SQLiteReadWriter) Close() error {
+	r.stop <- struct{}{}
 	return r.db.Close()
 }
 

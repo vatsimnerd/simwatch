@@ -171,7 +171,7 @@ func sendMessages(sock *websocket.Conn, sub *provider.Subscription, mc <-chan *M
 		case <-flush.C:
 			// periodically flush update buffers
 			if acc != nil && acc.hasData() {
-				l.WithField("obj_count", len(acc.Objects)).Debug("periodical account flush")
+				l.WithField("obj_count", len(acc.Objects)).Debug("periodical accumulator flush")
 				// if acc has data, send its contents and reset
 				sock.WriteJSON(acc.message())
 				acc.reset()

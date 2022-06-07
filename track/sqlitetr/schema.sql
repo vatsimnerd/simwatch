@@ -1,3 +1,5 @@
+PRAGMA foreign_keys = ON;
+
 CREATE TABLE IF NOT EXISTS tracks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   track_code VARCHAR,
@@ -13,7 +15,7 @@ CREATE TABLE IF NOT EXISTS track_points (
   heading INTEGER,
   groundspeed INTEGER,
   ts DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY(track_id) REFERENCES tracks(id)
+  FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS track_track_code_idx ON tracks (track_code);
