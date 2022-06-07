@@ -17,11 +17,12 @@ import (
 type RedisReadWriter struct {
 	cfg        *config.TrackConfigOptions
 	cli        *redis.Client
+	stop       chan struct{}
 	configured bool
 }
 
 var (
-	ReadWriter = &RedisReadWriter{}
+	ReadWriter = &RedisReadWriter{stop: make(chan struct{})}
 	log        = logrus.WithField("module", "track.redistr")
 
 	errPointNotFound = errors.New("point not found")
@@ -67,11 +68,6 @@ func (r *RedisReadWriter) LoadTrackByID(ctx context.Context, trackID string) (*t
 	return tr, nil
 }
 
-func (r *RedisReadWriter) LoadTrack(ctx context.Context, p *merged.Pilot) (*track.Track, error) {
-	trackID, _ := track.ExtractTrackData(p)
-	return r.LoadTrackByID(ctx, trackID)
-}
-
 func (r *RedisReadWriter) WriteTrack(ctx context.Context, p *merged.Pilot) error {
 	l := log.WithFields(logrus.Fields{
 		"func":     "WriteTrack",
@@ -108,12 +104,12 @@ func (r *RedisReadWriter) Configure(cfg *config.TrackConfigOptions) error {
 	return nil
 }
 
-func (r *RedisReadWriter) ListIDs(ctx context.Context) []string {
+func (r *RedisReadWriter) ListIDs(ctx context.Context) ([]string, error) {
 	res, err := r.cli.SMembers(ctx, keyTrackIDs).Result()
 	if err != nil {
-		return []string{}
+		return []string{}, err
 	}
-	return res
+	return res, nil
 }
 
 func (r *RedisReadWriter) trackExists(ctx context.Context, trackID string) bool {
@@ -315,31 +311,42 @@ func (r *RedisReadWriter) gc() {
 
 	ctx := context.Background()
 
-	for range t.C {
-		now := time.Now()
-		l.Debug("running tracks garbage collector")
+	for {
+		select {
+		case <-r.stop:
+			return
+		case <-t.C:
+			now := time.Now()
+			l.Debug("running tracks garbage collector")
 
-		trackIDs, err := r.cli.SMembers(ctx, keyTrackIDs).Result()
-		if err != nil {
-			l.WithError(err).Error("error reading track ids")
-			continue
-		}
-
-		for _, trackID := range trackIDs {
-			ck := trackCreatedKey(trackID)
-			createdUx, err := r.getInt64(ctx, ck)
+			trackIDs, err := r.cli.SMembers(ctx, keyTrackIDs).Result()
 			if err != nil {
-				l.WithField("track_id", trackID).WithError(err).Error("error reading track created ts")
+				l.WithError(err).Error("error reading track ids")
 				continue
 			}
-			ctime := time.Unix(createdUx, 0)
-			if now.Sub(ctime) > r.cfg.PurgePeriod {
-				err = r.deleteTrack(ctx, trackID)
+
+			for _, trackID := range trackIDs {
+				ck := trackCreatedKey(trackID)
+				createdUx, err := r.getInt64(ctx, ck)
 				if err != nil {
-					l.WithField("track_id", trackID).WithError(err).Error("error deleting track")
+					l.WithField("track_id", trackID).WithError(err).Error("error reading track created ts")
 					continue
+				}
+				ctime := time.Unix(createdUx, 0)
+				if now.Sub(ctime) > r.cfg.PurgePeriod {
+					err = r.deleteTrack(ctx, trackID)
+					if err != nil {
+						l.WithField("track_id", trackID).WithError(err).Error("error deleting track")
+						continue
+					}
 				}
 			}
 		}
 	}
+}
+
+func (r *RedisReadWriter) Close() error {
+	r.stop <- struct{}{}
+	close(r.stop)
+	return r.cli.Close()
 }

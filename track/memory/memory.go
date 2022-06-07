@@ -15,15 +15,20 @@ type MemoryReadWriter struct {
 	tracks      map[string]*track.Track
 	purgePeriod time.Duration
 	configured  bool
+	stop        chan struct{}
 	lock        sync.Mutex
 }
 
 var (
-	ReadWriter = &MemoryReadWriter{tracks: make(map[string]*track.Track)}
+	ReadWriter = &MemoryReadWriter{tracks: make(map[string]*track.Track), stop: make(chan struct{})}
 	log        = logrus.WithField("module", "track.memory")
 )
 
 func (m *MemoryReadWriter) LoadTrackByID(ctx context.Context, id string) (*track.Track, error) {
+	if !m.configured {
+		return nil, track.ErrNotConfigured
+	}
+
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -31,15 +36,6 @@ func (m *MemoryReadWriter) LoadTrackByID(ctx context.Context, id string) (*track
 		return t, nil
 	}
 	return nil, track.ErrNotFound
-}
-
-func (m *MemoryReadWriter) LoadTrack(ctx context.Context, p *merged.Pilot) (*track.Track, error) {
-	if !m.configured {
-		return nil, track.ErrNotConfigured
-	}
-
-	trackID, _ := track.ExtractTrackData(p)
-	return m.LoadTrackByID(ctx, trackID)
 }
 
 func (m *MemoryReadWriter) WriteTrack(ctx context.Context, p *merged.Pilot) error {
@@ -80,14 +76,14 @@ func (m *MemoryReadWriter) WriteTrack(ctx context.Context, p *merged.Pilot) erro
 	return nil
 }
 
-func (m *MemoryReadWriter) ListIDs(ctx context.Context) []string {
+func (m *MemoryReadWriter) ListIDs(ctx context.Context) ([]string, error) {
 	ids := make([]string, len(m.tracks))
 	i := 0
 	for key := range m.tracks {
 		ids[i] = key
 		i++
 	}
-	return ids
+	return ids, nil
 }
 
 func (m *MemoryReadWriter) Configure(cfg *config.TrackConfigOptions) error {
@@ -101,16 +97,27 @@ func (m *MemoryReadWriter) gc() {
 	t := time.NewTicker(m.purgePeriod)
 	defer t.Stop()
 
-	for range t.C {
-		m.lock.Lock()
-		tm := time.Now()
+	for {
+		select {
+		case <-t.C:
+			m.lock.Lock()
+			tm := time.Now()
 
-		for key, track := range m.tracks {
-			if tm.Sub(track.CreatedAt) > m.purgePeriod {
-				delete(m.tracks, key)
-				log.WithField("track_id", key).Info("expired track removed")
+			for key, track := range m.tracks {
+				if tm.Sub(track.CreatedAt) > m.purgePeriod {
+					delete(m.tracks, key)
+					log.WithField("track_id", key).Info("expired track removed")
+				}
 			}
+			m.lock.Unlock()
+		case <-m.stop:
+			return
 		}
-		m.lock.Unlock()
 	}
+}
+
+func (r *MemoryReadWriter) Close() error {
+	r.stop <- struct{}{}
+	close(r.stop)
+	return nil
 }

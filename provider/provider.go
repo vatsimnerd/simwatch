@@ -12,8 +12,6 @@ import (
 	"github.com/vatsimnerd/simwatch-providers/merged"
 	"github.com/vatsimnerd/simwatch/config"
 	"github.com/vatsimnerd/simwatch/track"
-	"github.com/vatsimnerd/simwatch/track/memory"
-	"github.com/vatsimnerd/simwatch/track/redistr"
 	"github.com/vatsimnerd/util/pubsub"
 	"github.com/vatsimnerd/util/set"
 )
@@ -55,19 +53,12 @@ func New(cfg *config.Config) *Provider {
 }
 
 func (p *Provider) Start() error {
-	switch p.tcfg.Engine {
-	case "memory":
-		log.Info("registering memory track engine")
-		track.RegisterTrackReadWriter(memory.ReadWriter)
-	case "redis":
-		log.Info("registering redis track engine")
-		track.RegisterTrackReadWriter(redistr.ReadWriter)
-	default:
-		return fmt.Errorf("invalid track engine '%s'", p.tcfg.Engine)
+	err := p.setupTrackStore()
+	if err != nil {
+		return err
 	}
-	track.Configure(&p.tcfg.Options)
 
-	err := p.vatsim.Start()
+	err = p.vatsim.Start()
 	if err != nil {
 		return err
 	}
@@ -77,6 +68,7 @@ func (p *Provider) Start() error {
 
 func (p *Provider) Stop() {
 	p.stop <- true
+	track.Close()
 }
 
 func (p *Provider) loop() {
