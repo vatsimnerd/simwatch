@@ -1,3 +1,4 @@
 /simwatch-local.yaml
 /cmd/sandbox
 *.log
+/tracks.sqlite

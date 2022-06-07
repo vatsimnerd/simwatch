@@ -18,6 +18,7 @@ type TrackConfigOptions struct {
 	Addr        string        `mapstructure:"addr,omitempty"`
 	Password    string        `mapstructure:"password,omitempty"`
 	DB          int           `mapstructure:"db,omitempty"`
+	Path        string        `mapstructure:"path,omitempty"`
 	PurgePeriod time.Duration `mapstructure:"purge_period,omitempty"`
 }
 

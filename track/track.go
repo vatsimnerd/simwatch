@@ -26,10 +26,10 @@ type Track struct {
 
 type TrackReadWriter interface {
 	WriteTrack(context.Context, *merged.Pilot) error
-	LoadTrack(context.Context, *merged.Pilot) (*Track, error)
 	LoadTrackByID(context.Context, string) (*Track, error)
-	ListIDs(context.Context) []string
+	ListIDs(context.Context) ([]string, error)
 	Configure(cfg *config.TrackConfigOptions) error
+	Close() error
 }
 
 var (
@@ -56,14 +56,15 @@ func WriteTrack(ctx context.Context, p *merged.Pilot) error {
 }
 
 func LoadTrack(ctx context.Context, p *merged.Pilot) (*Track, error) {
-	return readWriter.LoadTrack(ctx, p)
+	trackID, _ := ExtractTrackData(p)
+	return LoadTrackByID(ctx, trackID)
 }
 
 func LoadTrackByID(ctx context.Context, id string) (*Track, error) {
 	return readWriter.LoadTrackByID(ctx, id)
 }
 
-func ListIDs(ctx context.Context) []string {
+func ListIDs(ctx context.Context) ([]string, error) {
 	return readWriter.ListIDs(ctx)
 }
 
@@ -82,4 +83,8 @@ func ExtractTrackData(p *merged.Pilot) (trackID string, point TrackPoint) {
 
 func Configure(cfg *config.TrackConfigOptions) error {
 	return readWriter.Configure(cfg)
+}
+
+func Close() error {
+	return readWriter.Close()
 }
